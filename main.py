@@ -2,7 +2,7 @@ from discord.ext import commands
 import re as rgx
 import discord
 from io import TextIOWrapper, BytesIO
-import sys
+import sys,traceback
 
 #for eval() and exec()
 from random import *
@@ -35,12 +35,17 @@ async def on_ready():
 
 
 
+
+def gettraceback(exception):
+    lines = traceback.format_exception(type(exception), exception, exception.__traceback__)
+    print(''.join(lines))
+
 @bot.event
 async def on_command_error(ctx, error):
     if isinstance(error, commands.errors.CheckFailure):
         await ctx.send("You can't do that!")
     elif isinstance(error, commands.errors.CommandOnCooldown):
-        return await ctx.send("**" + ctx.author.name + ", you need to put a handle on your stallions. Please calm down for like half a second okay?**")
+        return await ctx.send(ctx.author.name + ", you need to put a handle on your stallions. This command can only be used every " + str(error.cooldown.per) + "sec!")
     elif isinstance(error, commands.errors.CommandNotFound):
         pass
     elif isinstance(error, commands.errors.MissingRequiredArgument):
@@ -53,6 +58,7 @@ async def on_command_error(ctx, error):
         error_data = rgx.findall('Converting to \"(.*)\" failed for parameter \"(.*)\"\.', e)
         if not error_data:
             await ctx.send('Error: {}'.format(' '.join(error.args)))
+            gettraceback(error)
         else:
             await ctx.send("Uh oh! You friccin moron! `{1}` isn't an `{0}`!".format(*error_data[0]))
     elif isinstance(error, commands.CommandInvokeError):
@@ -65,8 +71,10 @@ async def on_command_error(ctx, error):
                 await ctx.send("Uh oh! I don't have permissions for this!")
         else:
             await ctx.send("Error: {}".format(' '.join(error.args)))
+            gettraceback(error)
     else:
         await ctx.send("Error: {}".format(' '.join(error.args)))
+        gettraceback(error)
 
 
 @bot.command()

@@ -294,8 +294,11 @@ class Tags():
         self.dump_tags()
 
     def get_tags(self):
-        with open('tags.pkl', 'rb') as f:
-            return pickle.load(f)
+        try:
+            with open('tags.pkl', 'rb') as f:
+                return pickle.load(f)
+        except:
+            return []
 
     def dump_tags(self):
         try:
@@ -426,13 +429,13 @@ class Tags():
             await ctx.send("Tag edited!")
 
     @tag.command(brief="Delete a tag you own!")
-    async def delete(self, ctx, name : str):
+    async def delete(self, ctx, name: str):
 
         if name in self.banned_tags:
             await ctx.send("Uh oh! You friccin moron! That can't be a tag!")
             return
-        
-        if ctx.guild is None: 
+
+        if ctx.guild is None:
             return await ctx.send("Uh oh! You friccin moron! You can't use tags in DM!")
 
         valid_tags = self.getservertags(ctx.guild.id)
@@ -448,6 +451,36 @@ class Tags():
         if tag.aid != ctx.author.id:
             await ctx.send("Uh oh! You friccin moron! That tag isn't yours!")
             return
+        else:
+            master_index = self.tags.index(tag)
+            del self.tags[master_index]
+            self.dump_tags()
+            await ctx.send("Tag deleted!")
+
+    @tag.command(brief="Delete a tag you own!")
+    async def nuke(self, ctx, name: str):
+
+        if name in self.banned_tags:
+            await ctx.send("Uh oh! You friccin moron! That can't be a tag!")
+            return
+
+        if ctx.guild is None:
+            return await ctx.send("Uh oh! You friccin moron! You can't use tags in DM!")
+
+
+        if ctx.author.id != 137001076284063744:
+            return await ctx.send("You can't do that!")
+
+        valid_tags = self.getservertags(ctx.guild.id)
+        names = [t.name for t in valid_tags]
+
+        try:
+            ind = names.index(name)
+            tag = valid_tags[ind]
+        except:
+            await ctx.send("Uh oh! You friccin moron! That tag doesn't exist!")
+            return
+
         else:
             master_index = self.tags.index(tag)
             del self.tags[master_index]

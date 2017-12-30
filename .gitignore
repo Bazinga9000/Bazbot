@@ -4,3 +4,4 @@ __pycache__/*
 *.pkl
 secretimages/*
 backups/*
+output.png

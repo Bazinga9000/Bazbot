@@ -6,6 +6,10 @@ import math
 import dice
 import glob
 import random
+import pickle
+from PIL import Image
+import aiohttp
+from io import BytesIO
 
 x, t, z, nu = symbols('x t z nu')
 e = math.e
@@ -17,6 +21,57 @@ class Misc():
         self.bot = bot
         self.ratel = lambda x: int(hashlib.sha256(x.lower().encode('utf-8')).hexdigest(),16) % 101
 
+    def scale(self, image, max_size, method=Image.ANTIALIAS):
+        """
+        resize 'image' to 'max_size' keeping the aspect ratio
+        and place it in center of white 'max_size' image
+        """
+        im_aspect = float(image.size[0]) / float(image.size[1])
+        out_aspect = float(max_size[0]) / float(max_size[1])
+        if im_aspect >= out_aspect:
+            scaled = image.resize((max_size[0], int((float(max_size[0]) / im_aspect) + 0.5)), method)
+        else:
+            scaled = image.resize((int((float(max_size[1]) * im_aspect) + 0.5), max_size[1]), method)
+
+        offset = (((max_size[0] - scaled.size[0]) / 2), ((max_size[1] - scaled.size[1]) / 2))
+        back = Image.new("RGBA", max_size, (0,0,0,0))
+        back.paste(scaled, offset)
+
+        return back
+
+
+    @commands.command(brief="Coolguy-ify an image")
+    async def coolguy(self,ctx, *id):
+        if len(id) == 0:
+            url = ctx.message.attachments[0].url
+        else:
+            url = id[0]
+
+        with aiohttp.ClientSession() as session:
+            async with session.get(url) as resp:
+                response = await resp.read()
+
+        image = Image.open(BytesIO(response))
+
+        #s = image.size
+        #ratio = min(411/s[1],411/s[0])
+        #ns = [int(s[0] * ratio), int(s[1] * ratio)]
+
+        ns = [411,411]
+        image = image.resize(ns)
+        #print(image.size)
+
+        out = Image.new("RGBA",[411,411],(0,0,0,0))
+
+
+        coolguy = Image.open("cmdimages/coolguy.png").convert("RGBA")
+        anticoolguy = Image.open("cmdimages/anticoolguy.png").convert("RGBA")
+
+        out.paste(image, (0,0), anticoolguy)
+        out.paste(coolguy, (0, 0), coolguy)
+        out.save("output.png")
+
+        await ctx.send(file=discord.File(open("output.png", mode="rb")))
 
     @commands.command(brief="Sends you a DM")
     async def dm(self,ctx, *, content):
