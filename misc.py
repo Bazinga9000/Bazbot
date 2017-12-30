@@ -21,24 +21,16 @@ class Misc():
         self.bot = bot
         self.ratel = lambda x: int(hashlib.sha256(x.lower().encode('utf-8')).hexdigest(),16) % 101
 
-    def scale(self, image, max_size, method=Image.ANTIALIAS):
-        """
-        resize 'image' to 'max_size' keeping the aspect ratio
-        and place it in center of white 'max_size' image
-        """
-        im_aspect = float(image.size[0]) / float(image.size[1])
-        out_aspect = float(max_size[0]) / float(max_size[1])
-        if im_aspect >= out_aspect:
-            scaled = image.resize((max_size[0], int((float(max_size[0]) / im_aspect) + 0.5)), method)
-        else:
-            scaled = image.resize((int((float(max_size[1]) * im_aspect) + 0.5), max_size[1]), method)
 
-        offset = (((max_size[0] - scaled.size[0]) / 2), ((max_size[1] - scaled.size[1]) / 2))
-        back = Image.new("RGBA", max_size, (0,0,0,0))
-        back.paste(scaled, offset)
+    def crop(self,im,new_width,new_height):
+        width, height = im.size  # Get dimensions
 
-        return back
+        left = (width - new_width) / 2
+        top = (height - new_height) / 2
+        right = (width + new_width) / 2
+        bottom = (height + new_height) / 2
 
+        return im.crop((left, top, right, bottom))
 
     @commands.command(brief="Coolguy-ify an image")
     async def coolguy(self,ctx, *id):
@@ -53,13 +45,17 @@ class Misc():
 
         image = Image.open(BytesIO(response))
 
-        #s = image.size
-        #ratio = min(411/s[1],411/s[0])
-        #ns = [int(s[0] * ratio), int(s[1] * ratio)]
+        s = image.size
 
-        ns = [411,411]
-        image = image.resize(ns)
-        #print(image.size)
+        ratio = max(s[0],s[1]) / min(s[0],s[1])
+
+        if s[0] > s[1]:
+            ns = [int(411 * ratio),411]
+        else:
+            ns = [411, int(411 * ratio)]
+
+        image = image.resize(ns, Image.BILINEAR)
+        image = self.crop(image,411,411)
 
         out = Image.new("RGBA",[411,411],(0,0,0,0))
 
