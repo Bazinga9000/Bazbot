@@ -22,6 +22,19 @@ class Misc():
     async def dm(self,ctx, *, content):
         await ctx.author.send(content)
 
+    @commands.command(brief="Magic 8-ball",name="8ball")
+    async def ball(self,ctx, *, query):
+        answers = ["It is certain","It is decidedly so","Without a doubt","Yes Definitely",
+                   "You may rely on it","As I see it, yes","Most likely","Outlook good","Yes",
+                   "Signs point to yes","Reply hazy try again","Ask again later","Better not tell you now",
+                   "Cannot predict now","Concentrate and ask again","Don't count on it","My Reply is no",
+                   "My sources say no","Outlook not so good","Very doubtful"]
+
+        await ctx.send("**" + query + "**\n" + random.choice(answers))
+
+    @commands.command(brief="View the source code!")
+    async def code(self,ctx):
+        await ctx.send("**View Bazbot's source code here**\nhttps://github.com/Bazinga9000/Bazbot")
 
     @commands.command(brief="Sends images",name="i")
     async def image(self, ctx, name : str):
@@ -75,35 +88,45 @@ class Misc():
             await ctx.send("I give " + entity + " a score of **" + str(score) + "/100**")
 
 
-    @commands.command(brief="Rolls some dice!")
+    def total(self,result):
+        try:
+            return sum(result)
+        except:
+            return result
+
+
+    @commands.command(brief="Rolls some dice!",aliases=["die","dice"])
     async def roll(self,ctx,*,die : str):
 
+        diestring = die.replace("--list","")
+
         try:
-            resultl = dice.roll(die.replace("--list",""))
-            result = sum(resultl)
-            max = sum(dice.roll_max(die.replace("--list","")))
+            result = dice.roll(diestring)
+            result_max = dice.roll_max(diestring)
+            result_min = dice.roll_min(diestring)
         except dice.ParseException:
-            await ctx.send("Uh oh! You friccin moron! That's not an valid die expression!")
-            return
+            return await ctx.send("Uh oh! You friccin moron! That's not a valid formula!")
         except dice.TooManyDice:
-            await ctx.send("Uh oh! You friccin moron! That's too many dice!")
-            return
+            return await ctx.send("Uh oh! You friccin moron! That's too many dice!")
 
 
-        message = "<@" + str(ctx.author.id) + ">, Your `" + die.replace("--list","") + "` yielded "
+        message = "<@" + str(ctx.author.id) + ">, Your `" + diestring + "` yielded "
 
-        message += str(result)
-
-
-        if result == max and "x" not in die and "w" not in die:
-            message = message.replace("yielded ","yielded **a perfect ")
-            message += "!**"
+        if self.total(result) == self.total(result_max) and "w" not in diestring and "x" not in diestring:
+            message += "**a perfect " + str(self.total(result)) + "**!"
+        elif self.total(result) == self.total(result_min):
+            message += "*a critical fail of " + str(self.total(result_min)) + ".*"
+        else:
+            message += str(self.total(result))
 
 
         if "--list" in die:
-            message += " `" + str(resultl) + "`"
+            message += " `" + str(result) + "`"
 
         await ctx.send(message)
+
+
+
 
     @commands.command(brief="Summon me to your servers")
     async def summon(self,ctx):

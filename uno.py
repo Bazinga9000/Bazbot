@@ -23,7 +23,7 @@ class Player():
         self.hasdrawn = False
 
         self.cmap = {"RED" : "R", "GREEN" : "G", "YELLOW" : "Y", "BLUE" : "B",
-                     "R" : "R", "G" : "G", "Y" : "Y", "B" : "BLUE"}
+                     "R" : "R", "G" : "G", "Y" : "Y", "B" : "B"}
 
     def draw(self,amount=1):
         for i in range(amount):
@@ -35,7 +35,7 @@ class Player():
 
 
     def gethand(self):
-        return " ".join(self.hand)
+        return " ".join(sorted(self.hand,key = lambda x: x[::-1]))
 
     def play(self,card,args):
 
@@ -53,13 +53,15 @@ class Player():
         topcard = self.game.discardpile[-1]
 
         trank = topcard[:-1]
-        suit = card[-1]
 
         if self.game.drawstack != 0 and rank not in ["T","F"]:
             raise InvalidPlay
 
         if suit != " " and (trank != rank and suit != self.game.color):
-            raise InvalidPlay
+            if self.game.drawstack != 0 and rank in ["T","F"]:
+                pass
+            else:
+                raise InvalidPlay
 
         if rank in ["W","F"]:
             if len(args) == 0:
@@ -243,9 +245,7 @@ class UnoGame():
 
         game = self.pdb[ctx.guild.id][ctx.author.id]
 
-        print("here")
         game.players = [x for x in game.players if x.id != ctx.author.id]
-        print("there")
         self.pdb[ctx.guild.id].pop(ctx.author.id,None)
 
         if len(game.players) == 0:
@@ -271,7 +271,6 @@ class UnoGame():
         game.initround()
 
         for player in game.players:
-            player.draw(7)
             author = self.bot.get_user(player.id)
             await author.send("**Your Hand**\n```\n" + player.gethand() + "\n```")
 

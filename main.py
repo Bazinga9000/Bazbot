@@ -22,7 +22,7 @@ Get rekt milo.
 '''
 
 # this specifies what extensions to load when the bot starts up
-startup_extensions = ["textmanipulation","stem","misc","tags","boardgame","uno"]
+startup_extensions = ["textmanipulation","stem","misc","tags","boardgame","uno","dos"]
 
 bot = commands.Bot(command_prefix='b9!', description=description)
 
