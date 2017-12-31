@@ -15,6 +15,8 @@ pi = math.pi
 
 
 owner = lambda ctx: ctx.author.id == 137001076284063744
+tracebackt = True
+
 
 description = '''Bazinga_9000's Fancy Robot
 It does cool things I guess,
@@ -37,6 +39,7 @@ async def on_ready():
 
 
 def gettraceback(exception):
+    if not tracebackt: return
     lines = traceback.format_exception(type(exception), exception, exception.__traceback__)
     print(''.join(lines))
 
@@ -76,6 +79,17 @@ async def on_command_error(ctx, error):
         await ctx.send("Error: {}".format(' '.join(error.args)))
         gettraceback(error)
 
+
+@bot.command()
+@commands.check(owner)
+async def toggletb(ctx):
+    global tracebackt
+    if tracebackt:
+        tracebackt = False
+        await ctx.send("Traceback has been turned off!")
+    else:
+        tracebackt = True
+        await ctx.send("Traceback has been turned on!")
 
 @bot.command()
 @commands.check(owner)

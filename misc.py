@@ -21,23 +21,35 @@ class Misc():
         self.bot = bot
         self.ratel = lambda x: int(hashlib.sha256(x.lower().encode('utf-8')).hexdigest(),16) % 101
 
+    def crop(self, im, new_width, new_height):
+        width, height = im.size   # Get dimensions
+        left = (width - new_width)/2
+        top = (height - new_height)/2
+        right = (width + new_width)/2
+        bottom = (height + new_height)/2
 
-    def crop(self,im,new_width,new_height):
-        width, height = im.size  # Get dimensions
-
-        left = (width - new_width) / 2
-        top = (height - new_height) / 2
-        right = (width + new_width) / 2
-        bottom = (height + new_height) / 2
 
         return im.crop((left, top, right, bottom))
 
+
     @commands.command(brief="Coolguy-ify an image")
-    async def coolguy(self,ctx, *id):
+    async def coolguy(self, ctx, *id):
         if len(id) == 0:
             url = ctx.message.attachments[0].url
         else:
             url = id[0]
+            try:
+                url = ctx.message.mentions[0].avatar_url
+                if url == "": url = ctx.messages.mentions[0].default_avatar_url
+            except:
+                try:
+                    user = self.bot.get_user(int(id[0]))
+                    url = user.avatar_url
+                    if url == "": url = user.default_avatar_url
+                except:
+                    url = id[0]
+
+        url = url.replace(".webp",".png")
 
         with aiohttp.ClientSession() as session:
             async with session.get(url) as resp:
@@ -47,23 +59,25 @@ class Misc():
 
         s = image.size
 
-        ratio = max(s[0],s[1]) / min(s[0],s[1])
+        ratio = max(s[0], s[1]) / min(s[0], s[1])
 
         if s[0] > s[1]:
-            ns = [int(411 * ratio),411]
+            ns = [int(411 * ratio), 411]
         else:
             ns = [411, int(411 * ratio)]
 
         image = image.resize(ns, Image.BILINEAR)
-        image = self.crop(image,411,411)
+        image = self.crop(image, 411, 411)
+        print(image.size)
+        if image.size != [411,411]:
+            image = image.resize((411,411), Image.BILINEAR)
 
-        out = Image.new("RGBA",[411,411],(0,0,0,0))
-
+        out = Image.new("RGBA", [411, 411], (0, 0, 0, 0))
 
         coolguy = Image.open("cmdimages/coolguy.png").convert("RGBA")
         anticoolguy = Image.open("cmdimages/anticoolguy.png").convert("RGBA")
 
-        out.paste(image, (0,0), anticoolguy)
+        out.paste(image, (0, 0), anticoolguy)
         out.paste(coolguy, (0, 0), coolguy)
         out.save("output.png")
 
