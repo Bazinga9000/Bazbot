@@ -175,7 +175,7 @@ class BoardGame():
             return await ctx.send("Uh oh! You friccin moron! You're already in a game!")
 
         try:
-            game = self.pdb[ctx.guild.id][int(user[2:-1].replace("!",""))]
+            game = self.pdb[ctx.guild.id][ctx.message.mentions[0].id]
         except:
             return await ctx.send("Uh oh! You friccin moron! That player doesn't have a game!")
 

@@ -51,11 +51,17 @@ class Misc():
 
         url = url.replace(".webp",".png")
 
+        if ".png" not in url or ".jpg" not in url:
+            return await ctx.send("Uh oh! You friccin moron! That's not an image!")
+
         with aiohttp.ClientSession() as session:
             async with session.get(url) as resp:
                 response = await resp.read()
 
-        image = Image.open(BytesIO(response))
+        try:
+            image = Image.open(BytesIO(response))
+        except:
+            return await ctx.send("Uh oh! You friccin moron! That's not an image!")
 
         s = image.size
 
@@ -68,7 +74,7 @@ class Misc():
 
         image = image.resize(ns, Image.BILINEAR)
         image = self.crop(image, 411, 411)
-        print(image.size)
+
         if image.size != [411,411]:
             image = image.resize((411,411), Image.BILINEAR)
 
