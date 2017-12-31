@@ -49,9 +49,10 @@ class Misc():
                 except:
                     url = id[0]
 
-        url = url.replace(".webp",".png")
+        url = url.replace(".webp",".png").replace(".webm",".png")
+        print(url)
 
-        if ".png" not in url or ".jpg" not in url:
+        if ".png" not in url and ".jpg" not in url and ".gif" not in url:
             return await ctx.send("Uh oh! You friccin moron! That's not an image!")
 
         with aiohttp.ClientSession() as session:
