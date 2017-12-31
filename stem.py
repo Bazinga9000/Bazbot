@@ -146,6 +146,7 @@ class Stem():
         await ctx.send(str(self.cmaps))
 
     @commands.command(brief="Plot the mandelbrot set!")
+    @commands.cooldown(1,10,type=commands.BucketType.user)
     async def mandelbrot(self, ctx, cx : float, cy : float, r : float, p : int, colormap : str):
         if colormap == "random":
             cmap = choice(self.cmaps)

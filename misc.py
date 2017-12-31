@@ -33,6 +33,7 @@ class Misc():
 
 
     @commands.command(brief="Coolguy-ify an image")
+    @commands.cooldown(1,10,type=commands.BucketType.user)
     async def coolguy(self, ctx, *id):
         if len(id) == 0:
             url = ctx.message.attachments[0].url
@@ -50,7 +51,6 @@ class Misc():
                     url = id[0]
 
         url = url.replace(".webp",".png").replace(".webm",".png")
-        print(url)
 
         if ".png" not in url and ".jpg" not in url and ".gif" not in url:
             return await ctx.send("Uh oh! You friccin moron! That's not an image!")
