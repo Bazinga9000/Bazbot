@@ -96,5 +96,14 @@ class Text():
     async def randspace(self, ctx, *, text):
         await ctx.send(c.randspace(text))
 
+    @commands.command(brief="Chain text commands together",aliases=["text"])
+    async def chain(self,ctx,*, text):
+        try:
+            await ctx.send(c.chain(text))
+        except c.BadArguments:
+            await ctx.send("Uh oh! You friccin moron! Your arguments are wrong!")
+        except c.NoCommand:
+            await ctx.send("Uh oh! You friccin moron! You tried to chain a command that doesn't exist!")
+
 def setup(bot):
     bot.add_cog(Text(bot))

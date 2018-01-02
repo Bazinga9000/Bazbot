@@ -162,7 +162,7 @@ class Dos():
                      "R": "R", "G": "G", "Y": "Y", "B": "B", "O": "O", "P": "P"}
 
         self.ranklist = ["0","1","2","3","4","5","6","7","8","9","10","11","12","13","14","15",
-                      "T","F","?","R","S","⇉","⤣","⟳","↶","👁","$","☭","🛡","➗","💧","💀","X","W","WF"]
+                      "T","F","?","R","S","»","⇉","⤣","⟳","↶","👁","$","☭","🛡","➗","💧","💀","X","W","WF"]
 
         self.colorlist = ["R","O","Y","G","B","P"," "]
         self.sort = lambda x: len(self.ranklist) * self.colorlist.index(x[-1]) + self.ranklist.index(x[:-1])
@@ -186,12 +186,12 @@ class Dos():
             return 0
 
     def newdeck(self):
-        nums = ["0","1","2","3","4","5","6","7","8","9","10","11","12","13","14","15"]
-        specials = ["T","F","R","?","S","⇉","⤣","👁","↶","⟳","X"]
+        nums = ["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15"]
+        specials = ["T","F","R","?","S","⇉","⤣","👁","↶","⟳","X","»"]
         suits = ["R","G","B","Y","O","P"]
 
 
-        ranks = nums * 2 + specials
+        ranks = ["0"] + nums * 2 + specials
 
         self.deck = []
 
@@ -199,7 +199,7 @@ class Dos():
             for suit in suits:
                 self.deck.append(rank + suit)
 
-        indivs = ["W ","WF "] * 8 + ["☭R","💀 ","$G","🛡Y","➗B","💧P"] * 4
+        indivs = ["W ","WF "] * 8 + ["☭R","$G","🛡Y","➗B","💧P","💀 "] * 4
 
         self.deck.extend(indivs)
 
@@ -242,43 +242,48 @@ class Dos():
         else:
             values = {"T" : 20, "S" : 20, "R" : 20, "F" : 20, "?" : 30, "W" : 50, "WF" : 50,
                       "⇉" : 20, "⤣" : 20, "☭" : 20, "$" : 40, "👁" : 20, "💀" : 0, "⟳" : 5,
-                      "↶" : 20, "X" : 40, "🛡" : 20, "➗" : 40, "💧" : 40}
+                      "↶" : 20, "X" : 40, "🛡" : 20, "➗" : 40, "💧" : 40, "»" : 20}
             return values[card[:-1]]
 
     def handlecard(self,card,args):
 
         dp = int(args[0])
 
-        if card.startswith("S"):
+        if card.startswith("S"): #skip
             self.turn = (self.turn + self.turndirection) % len(self.players)
-        elif card.startswith("R"):
+        elif card.startswith("R"): #reverse
             self.turndirection *= -1
-        elif card.startswith("T"):
+        elif card.startswith("T"): #draw two
             self.drawstack += 2
-        elif card.startswith("F"):
+        elif card.startswith("F"): #draw four
             self.drawstack += 4
-        elif card.startswith("WF"):
+        elif card.startswith("WF"): #wild draw four
             self.drawstack += 4
             self.colors[dp] = self.cmap[args[1].upper()]
-        elif card.startswith("W"):
+        elif card.startswith("W"): #wild
             self.colors[dp] = self.cmap[args[1].upper()]
-        elif card.startswith("⇉"):
+        elif card.startswith("⇉"): #doubleskip
             self.turn = (self.turn + self.turndirection + self.turndirection) % len(self.players)
-        elif card.startswith("⤣"):
+        elif card.startswith("⤣"): #reverse skip
             self.turndirection *= -1
             self.turn = (self.turn + self.turndirection) % len(self.players)
-        elif card.startswith("💀"):
+        elif card.startswith("»"): #skipdraw
+            self.turn = (self.turn + self.turndirection) % len(self.players)
+            self.drawstack += 2
+        elif card.startswith("💀"): #grim reaper
             self.drawstack += 8
-        elif card.startswith("⟳"):
+        elif card.startswith("⟳"): #shuffle
             random.shuffle(self.discardpiles[dp])
             self.colors[dp] = self.discardpiles[dp][-1][-1]
             self.ranks[dp] = self.discardpiles[dp][-1][:-1]
-        elif card.startswith("?"):
+        elif card.startswith("?"): #metadraw
             fv = self.facevalue(self.discardpiles[dp][-2])
             if fv == 0: self.drawstack += 2
             self.drawstack += fv
-        elif card.startswith("↶"):
+        elif card.startswith("↶"): #second go
             self.turn = (self.turn - self.turndirection) % len(self.players)
+
+        #communist
         elif card.startswith("☭"):
             cards = []
             for player in self.players:
@@ -295,9 +300,10 @@ class Dos():
                 for player in self.players:
                     player.hand.append(cards.pop())
                     if len(cards) == 0: break
-
-        elif card.startswith("X"):
+        elif card.startswith("X"): #metadraw
             self.ranks[dp] = self.repalias(args[1].upper())
+
+        #trickledown
         elif card.startswith("$"):
             handsizes = [len(x.hand) for x in self.players]
             poor = handsizes.index(max(handsizes))
@@ -310,6 +316,7 @@ class Dos():
             for i in range(tax):
                 random.shuffle(rp.hand)
                 pp.hand.append(rp.hand.pop())
+        #mitosis
         elif card.startswith("➗"):
 
             half = len(self.discardpiles[dp])//2
@@ -648,7 +655,7 @@ class DosGame():
             player.drawn = 1
             player.hasdrawn = True
             await ctx.send("Card Drawn! If you still can't play anything, you can either draw again or pass your turn with `b9!dos pass`")
-            await ctx.author.send("**Your Hand**\n```\n" + player.gethand() + "\n```")
+            await ctx.author.send("**Your Hand**\n```md\n" + player.gethand() + "\n```")
 
     @dos.command(name="pass")
     async def _pass(self,ctx):

@@ -10,8 +10,9 @@ import matplotlib.pyplot as plt
 from mpmath import cplot
 import re
 import pint
-
+import shlex
 import math
+import numpy
 
 ureg = pint.UnitRegistry()
 
@@ -118,6 +119,23 @@ def getcomps(compound):
             complists.append([part[0], part[1]])
 
     return complists
+
+class MismatchedParenthesis(Exception):
+    pass
+
+class BadArgument(Exception):
+    def __init__(self,value):
+        self.value = value
+
+    def __str__(self):
+        return str(self.value)
+
+class NoComplex(Exception):
+    def __init__(self,value):
+        self.value = value
+
+    def __str__(self):
+        return str(self.value)
 
 class Stem():
     def __init__(self,bot):
@@ -247,6 +265,334 @@ class Stem():
         mass = molarmass * moles
 
         await ctx.send("The Mass of `" + str(moles) + " mol` of `" + compound + "` is `" + str(mass) + "g`")
+
+
+    def infix_to_postfix(self,tokens):
+        ops = [o[0] for o in self.operators]
+        precs = [o[1] for o in self.operators]
+        assoc = [o[2] for o in self.operators] #true = right associative
+
+        getprec = lambda x: precs[ops.index(x)]
+        getassoc = lambda x: assoc[ops.index(x)]
+
+
+        output = []
+        opstack = []
+
+        for token in tokens:
+            if token == "(":
+                opstack.append("(")
+                continue
+            elif token == ")":
+                while opstack[-1] != "(":
+                    output.append(opstack.pop())
+                    if len(opstack) == 0: raise MismatchedParenthesis
+
+                opstack.pop()
+            elif token in ops:
+                if len(opstack) == 0:
+                    opstack.append(token)
+                    continue
+
+                while len(opstack) != 0:
+                    valid = False
+
+                    if getprec(opstack[-1]) > getprec(token): valid = True
+                    if not getassoc(token) and getprec(opstack[-1]) == getprec(token): valid = True
+                    if opstack[-1] == "(": valid = False
+
+                    if not valid: break
+
+
+                    output.append(opstack.pop())
+
+
+                opstack.append(token)
+
+            else:
+                try:
+                    output.append(complex(token))
+                except:
+                    raise BadArgument(token)
+
+
+        for i in range(len(opstack)):
+            output.append(opstack.pop())
+
+
+        return output
+
+    def parserpn(self, rpn):
+
+        stack = []
+
+        for token in rpn:
+            if isinstance(token, complex):
+                stack.append(token)
+
+            else:
+                if token == "+":
+                    a = stack.pop()
+                    b = stack.pop()
+                    stack.append(a+b)
+
+                if token == "-":
+
+                    if len(stack) >= 2:
+                        a = stack.pop()
+                        b = stack.pop()
+                        stack.append(b-a)
+                    else:
+                        stack.append(-stack.pop())
+
+                if token == "*":
+                    a = stack.pop()
+                    b = stack.pop()
+                    stack.append(a*b)
+
+                if token == "%":
+                    a = stack.pop()
+                    b = stack.pop()
+
+                    if a.imag != 0 or b.imag != 0:
+                        raise NoComplex("%")
+                    else:
+                        a = a.real
+                        b = b.real
+                        stack.append(complex(b%a))
+
+                if token == "/":
+                    a = stack.pop()
+                    b = stack.pop()
+                    stack.append(b/a)
+
+                if token == "^":
+                    a = stack.pop()
+                    b = stack.pop()
+                    stack.append(b**a)
+
+                if token == "sqrt":
+                    a = stack.pop()
+                    stack.append(numpy.sqrt(a))
+
+                if token == "log10":
+                    stack.append(cmath.log10(stack.pop()))
+
+                if token == "ln":
+                    stack.append(cmath.log(stack.pop()))
+
+                if token == "log":
+                    a = stack.pop()
+                    b = stack.pop()
+
+                    stack.append(cmath.log(a,b))
+
+                if token == "!":
+                    a = stack.pop()
+
+                    if a.imag != 0 :
+                        raise NoComplex("!")
+                    else:
+                        a = a.real
+                        stack.append(complex(numpy.math.gamma(a + 1)))
+
+                if token == "sin":
+                    stack.append(numpy.sin(stack.pop()))
+
+                if token == "cos":
+                    stack.append(numpy.cos(stack.pop()))
+
+                if token == "tan":
+                    stack.append(numpy.tan(stack.pop()))
+
+                if token == "csc":
+                    stack.append(1 / numpy.sin(stack.pop()))
+
+                if token == "sec":
+                    stack.append(1 / numpy.cos(stack.pop()))
+
+                if token == "cot":
+                    stack.append(1 / numpy.tan(stack.pop()))
+
+                if token == "asin":
+                    stack.append(numpy.arcsin(stack.pop()))
+
+                if token == "acos":
+                    stack.append(numpy.arccos(stack.pop()))
+
+                if token == "atan":
+                    stack.append(numpy.arctan(stack.pop()))
+
+                if token == "acsc":
+                    stack.append(1 / numpy.arcsin(stack.pop()))
+
+                if token == "asec":
+                    stack.append(1 / numpy.arccos(stack.pop()))
+
+                if token == "acot":
+                    stack.append(1 / numpy.arctan(stack.pop()))
+
+                if token == "sinh":
+                    stack.append(numpy.sinh(stack.pop()))
+
+                if token == "cosh":
+                    stack.append(numpy.cosh(stack.pop()))
+
+                if token == "tanh":
+                    stack.append(numpy.tanh(stack.pop()))
+
+                if token == "csch":
+                    stack.append(1 / numpy.sinh(stack.pop()))
+
+                if token == "sech":
+                    stack.append(1 / numpy.cosh(stack.pop()))
+
+                if token == "coth":
+                    stack.append(1 / numpy.tanh(stack.pop()))
+
+                if token == "asinh":
+                    stack.append(numpy.arcsinh(stack.pop()))
+
+                if token == "acosh":
+                    stack.append(numpy.arccosh(stack.pop()))
+
+                if token == "atanh":
+                    stack.append(numpy.arctanh(stack.pop()))
+
+                if token == "acsch":
+                    stack.append(1 / numpy.arcsinh(stack.pop()))
+
+                if token == "asech":
+                    stack.append(1 / numpy.arccosh(stack.pop()))
+
+                if token == "acoth":
+                    stack.append(1 / numpy.arctanh(stack.pop()))
+
+
+
+                if token == "pi":
+                    stack.append(numpy.pi)
+
+                if token == "e":
+                    stack.append(numpy.e)
+
+
+
+        return stack
+
+
+    def format_answer(self,answer):
+        if answer.imag == 0:
+            answer = answer.real
+            if answer == float(answer): answer = float(answer)
+            if answer == int(answer): answer = int(answer)
+
+        return str(answer).replace("j", "i")
+
+
+
+    @commands.command(brief="Do math!")
+    async def math(self,ctx, *, expr):
+
+        self.operators = [
+
+            #Basic Operators
+            ["+",    2, False], #add
+            ["-",    2, False], #subtract
+            ["*",    3, False], #multiply
+            ["/",    3, False], #divide
+            ["%",    3, False], #modulo
+            ["^",    4, True],  #exponent
+            ["**",   4, True],  #also exponent
+            ["sqrt", 5, True],  #square root
+            ["log10",5, True],  #common log
+            ["ln",   5, True],  #natural log
+            ["log",  5, True],  #logbase
+            ["!",    5, False], #factorial
+            #Trig
+            ["sin",  5, True],  #sine
+            ["cos",  5, True],  #cosine
+            ["tan",  5, True],  #tangent
+            ["csc",  5, True],  #cosecant
+            ["sec",  5, True],  #secant
+            ["cot",  5, True],  #cotangent
+            #Inverse Trig
+            ["asin", 5, True],  # sine
+            ["acos", 5, True],  # cosine
+            ["atan", 5, True],  # tangent
+            ["acsc", 5, True],  # cosecant
+            ["asec", 5, True],  # secant
+            ["acot", 5, True],  # cotangent
+            #Hyperbolic Trig
+            ["sinh", 5, True],  #hyperbolic sine
+            ["cosh", 5, True],  #hyperbolic cosine
+            ["tanh", 5, True],  #hyperbolic tangent
+            ["csch", 5, True],  #hyperbolic cosecant
+            ["sech", 5, True],  #hyperbolic secant
+            ["coth", 5, True],  #hyperbolic cotangent
+            #Inverse Hyperbolic Trig
+            ["asinh",5, True],  # hyperbolic sine
+            ["acosh",5, True],  # hyperbolic cosine
+            ["atanh",5, True],  # hyperbolic tangent
+            ["acsch",5, True],  # hyperbolic cosecant
+            ["asech",5, True],  # hyperbolic secant
+            ["acoth",5, True],  # hyperbolic cotangent
+            #constants
+            ["pi",   7, True],  #constant pi
+            ["e",    7, True],  #constant e
+
+            ["(", 9999, True]   #almighty left parenthesis
+        ]
+
+
+        if expr == "list" or expr == "listops":
+            return await ctx.send("```\n" + " ".join([o[0] for o in self.operators[:-1]]) + "\n```")
+
+        expression = expr
+
+        for op in sorted([o[0] for o in self.operators],key=lambda x: -len(x)):
+            if op != "-":
+                expression = expression.replace(op," " + op + " ")
+
+            expression = expression.replace("-"," -")
+
+        expression = expr.replace("(", " ( ").replace(")", " ) ").replace("i", "j").replace(",", " ")
+
+
+        for op in ["pi","sin","sinh","asin","asinh"]:
+            expression = expression.replace(op.replace("i","j"),op)
+
+
+        tokens = shlex.split(expression)
+
+        try:
+            rpn = self.infix_to_postfix(tokens)
+        except MismatchedParenthesis:
+            return await ctx.send("Uh oh! You friccin moron! You have mismatched parenthesis!")
+        except BadArgument as e:
+            return await ctx.send("Uh oh! You friccin moron! " + str(e) + " is an invalid operator!")
+
+        #await ctx.send(" ".join([str(i) for i in rpn]))
+
+        try:
+            answer = self.parserpn(rpn)
+
+            if len(answer) == 1:
+                await ctx.send(self.format_answer(answer.pop()))
+            elif len(answer) > 1:
+                await ctx.send("**More than one number left on the stack.**\n" + ", ".join([self.format_answer(i) for i in answer]))
+            else:
+                await ctx.send("**Nothing on the stack.**")
+
+        except ZeroDivisionError:
+            await ctx.send("Uh oh! You friccin moron! You tried to divide by zero!")
+        except OverflowError:
+            await ctx.send("Uh oh! You friccin moron! Your calculation overflowed!")
+        except NoComplex as e:
+            await ctx.send("Uh oh! You friccin moron! `" + str(e) + "` doesn't support complex numbers!")
+        except ValueError:
+            await ctx.send("Uh oh! You friccin moron! You tried an operation that's undefined!")
+
 
 
     '''

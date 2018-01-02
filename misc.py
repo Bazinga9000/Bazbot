@@ -10,6 +10,8 @@ import pickle
 from PIL import Image
 import aiohttp
 from io import BytesIO
+import warnings
+warnings.simplefilter('error', Image.DecompressionBombWarning)
 
 x, t, z, nu = symbols('x t z nu')
 e = math.e
@@ -61,6 +63,8 @@ class Misc():
 
         try:
             image = Image.open(BytesIO(response))
+        except Image.DecompressionBombWarning:
+            return await ctx.send("Uh oh! You friccin moron! That image is too big! Try a smaller one.")
         except:
             return await ctx.send("Uh oh! You friccin moron! That's not an image!")
 

@@ -1,8 +1,10 @@
 from random import *
 from itertools import cycle
-
-
+from inspect import signature
 import string
+import shlex
+
+
 mariol = {
 "a" : "<:sm64_a:288105731712876545>",
 "b" : "<:sm64_b:288105731859808256>",
@@ -77,6 +79,8 @@ scriptl = {"A":"𝒜","B":"ℬ","C":"𝒞","D":"𝒟","E":"ℰ","F":"ℱ","G":"�
            "l":"𝓁","m":"𝓂","n":"𝓃","o":"ℴ","p":"𝓅","q":"𝓆","r":"𝓇","s":"𝓈","t":"𝓉","u":"𝓊","v":"𝓋","w":"𝓌",
            "x":"𝓍","y":"𝓎","z":"𝓏"}
 alphabet = string.ascii_lowercase
+
+
 
 
 def shuffle_word(word):
@@ -248,6 +252,8 @@ def script(text):
 def cthulu(len):
     return "".join([chr(randint(33,126)) for i in range(int(len))])
 
+
+
 newtext = ""
 def rot(plaintext, shift):
     shifted_alphabet = alphabet[shift % 26:] + alphabet[:shift % 26]
@@ -285,5 +291,53 @@ def vigenere(text,key):
 
 def randspace(text):
     return "".join([i + (" " * randint(1,7)) for i in text])
+
+
+commands = [mario,elongate,bin,fullwidth,dings,mash,reverse,nato,unbin,scramble,hex,unhex,fraktur,blackboard,script,cthulu,rot,vigenere,randspace]
+commandnames = [str(x).split(" ")[1] for x in commands]
+
+
+class NoCommand(Exception):
+    pass
+
+class BadArguments(Exception):
+    pass
+
+def chain(text):
+    arguments = shlex.split(text)[::-1]
+
+    params = []
+
+    while len(arguments) != 0:
+        print(arguments,params)
+        arg = arguments.pop(0)
+
+        if arg.startswith("--"):
+            command = arg.replace("--","")
+            print(command)
+            if command not in commandnames:
+                raise NoCommand
+
+            index = commandnames.index(command)
+            cmd = commands[index]
+
+            sig = signature(commands[index])
+
+            paramcount = len(sig.parameters)
+
+            try:
+                if paramcount == 1:
+                    params.append(cmd(params.pop(0)))
+
+                if paramcount == 2:
+                    params.append(cmd(params.pop(0),params.pop(0)))
+            except:
+                raise BadArguments
+        else:
+            params.append(arg)
+
+
+
+    return " ".join(params)
 
 
