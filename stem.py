@@ -3,17 +3,18 @@ from discord.ext import commands
 import Botzinga_9000.FastMandelbrot as md
 from random import *
 from sympy import *
-import numpy as np
 import cmath
 import colorsys
 import matplotlib.pyplot as plt
 from mpmath import cplot
 import re
 import pint
-import shlex
 import math
 import numpy
-
+import scipy
+from scipy import special
+from scipy import misc
+from decimal import Decimal
 ureg = pint.UnitRegistry()
 
 
@@ -130,12 +131,17 @@ class BadArgument(Exception):
     def __str__(self):
         return str(self.value)
 
-class NoComplex(Exception):
-    def __init__(self,value):
+class BadType(Exception):
+    def __init__(self,op,value,type):
+        self.op = op
         self.value = value
+        self.type = type
+        self.typemap = {int : "int", Decimal : "decimal", numpy.complex128 : "complex", complex : "complex",
+                        tuple : "tuple"}
 
     def __str__(self):
-        return str(self.value)
+        return str(self.op + " doesn't support `" + str(self.typemap[self.type]) + "`! (You gave it `" + str(self.value) + "`)")
+
 
 class Stem():
     def __init__(self,bot):
@@ -267,6 +273,24 @@ class Stem():
         await ctx.send("The Mass of `" + str(moles) + " mol` of `" + compound + "` is `" + str(mass) + "g`")
 
 
+    def litparse(self,literal):
+        try:
+            return int(str(literal)) #int
+        except:
+            pass
+
+        try:
+            return Decimal(str(literal)) #float
+        except:
+            pass
+
+        try:
+            return complex(literal) #complex
+        except:
+            pass
+
+        return complex(literal.replace("i","j")) #complex with i instead of j
+
     def infix_to_postfix(self,tokens):
         ops = [o[0] for o in self.operators]
         precs = [o[1] for o in self.operators]
@@ -284,6 +308,7 @@ class Stem():
                 opstack.append("(")
                 continue
             elif token == ")":
+                if len(opstack) == 0: raise MismatchedParenthesis
                 while opstack[-1] != "(":
                     output.append(opstack.pop())
                     if len(opstack) == 0: raise MismatchedParenthesis
@@ -311,90 +336,163 @@ class Stem():
 
             else:
                 try:
-                    output.append(complex(token))
+                    output.append(self.litparse(token))
                 except:
                     raise BadArgument(token)
 
 
         for i in range(len(opstack)):
+            if opstack[-1] == "(": raise MismatchedParenthesis
             output.append(opstack.pop())
 
 
         return output
+
+    def ban(self, op, arg, types):
+        if isinstance(arg,types):
+            raise BadType(op,arg,type(arg))
+
 
     def parserpn(self, rpn):
 
         stack = []
 
         for token in rpn:
-            if isinstance(token, complex):
+            if token not in [i[0] for i in self.operators]:
                 stack.append(token)
 
             else:
                 if token == "+":
                     a = stack.pop()
                     b = stack.pop()
-                    stack.append(a+b)
+                    stack.append(numpy.add(a,b))
 
                 if token == "-":
+                    a = stack.pop()
+                    b = stack.pop()
+                    stack.append(numpy.subtract(b,a))
 
-                    if len(stack) >= 2:
-                        a = stack.pop()
-                        b = stack.pop()
-                        stack.append(b-a)
-                    else:
-                        stack.append(-stack.pop())
+                if token == "-u":
+                    stack.append(numpy.multiply(-1,stack.pop()))
 
                 if token == "*":
                     a = stack.pop()
                     b = stack.pop()
-                    stack.append(a*b)
+                    stack.append(numpy.multiply(a,b))
 
                 if token == "%":
                     a = stack.pop()
                     b = stack.pop()
 
-                    if a.imag != 0 or b.imag != 0:
-                        raise NoComplex("%")
-                    else:
-                        a = a.real
-                        b = b.real
-                        stack.append(complex(b%a))
+                    self.ban("%",a,(complex))
+                    self.ban("%",b,(complex))
+
+                    stack.append(numpy.mod(b,a))
 
                 if token == "/":
                     a = stack.pop()
                     b = stack.pop()
-                    stack.append(b/a)
+                    stack.append(numpy.divide(b,a))
 
-                if token == "^":
+                if token in ["^","**"]:
                     a = stack.pop()
                     b = stack.pop()
-                    stack.append(b**a)
+                    stack.append(numpy.power(b,a))
+
+                if token in ["^-","**-"]:
+                    a = stack.pop()
+                    b = stack.pop()
+                    stack.append(numpy.power(b,numpy.multiply(-1,a)))
 
                 if token == "sqrt":
                     a = stack.pop()
                     stack.append(numpy.sqrt(a))
-
-                if token == "log10":
-                    stack.append(cmath.log10(stack.pop()))
 
                 if token == "ln":
                     stack.append(cmath.log(stack.pop()))
 
                 if token == "log":
                     a = stack.pop()
+                    if isinstance(a,tuple):
+                        stack.append(numpy.log(a[1])/numpy.log(a[0]))
+                    else:
+                        stack.append(numpy.log10(a))
+
+
+                if token == ",":
+                    a = stack.pop()
                     b = stack.pop()
 
-                    stack.append(cmath.log(a,b))
+                    if isinstance(a,tuple):
+                        stack.append((b,) + a)
+                    else:
+                        stack.append((b,a))
+
+                if token == "and":
+                    a = stack.pop()
+                    b = stack.pop()
+
+                    self.ban("and",a,(complex,Decimal,tuple))
+                    self.ban("and",b,(complex,Decimal,tuple))
+
+                    stack.append(numpy.bitwise_and(int(a), int(b)))
+
+                if token == "xor":
+                    a = stack.pop()
+                    b = stack.pop()
+
+                    self.ban("xor",a,(complex,Decimal,tuple))
+                    self.ban("xor",b,(complex,Decimal,tuple))
+
+                    stack.append(numpy.bitwise_xor(int(a), int(b)))
+
+                if token == "or":
+                    a = stack.pop()
+                    b = stack.pop()
+
+                    self.ban("or",a,(complex,Decimal,tuple))
+                    self.ban("or",b,(complex,Decimal,tuple))
+
+                    stack.append(numpy.bitwise_or(int(a), int(b)))
+
+                if token == "not":
+                    a = stack.pop()
+
+                    self.ban("not",a,(complex,Decimal,tuple))
+
+                    stack.append(numpy.bitwise_not(int(a)))
 
                 if token == "!":
                     a = stack.pop()
 
-                    if a.imag != 0 :
-                        raise NoComplex("!")
+                    self.ban("!",a,(complex))
+
+                    if isinstance(a,int):
+                        stack.append(numpy.math.factorial(a))
                     else:
-                        a = a.real
-                        stack.append(complex(numpy.math.gamma(a + 1)))
+                        stack.append(numpy.math.gamma(a + 1))
+
+                if token == "choose":
+                    t = stack.pop()
+
+                    a = t[0]
+                    b = t[1]
+
+                    self.ban("choose", a, (complex, Decimal))
+                    self.ban("choose", b, (complex, Decimal))
+
+                    stack.append(scipy.misc.comb(a,b,exact=True))
+
+                if token == "perm":
+                    t = stack.pop()
+
+                    a = t[0]
+                    b = t[1]
+
+                    self.ban("perm", a, (complex, Decimal))
+                    self.ban("perm", b, (complex, Decimal))
+
+                    stack.append(scipy.special.perm(a,b,exact=True))
 
                 if token == "sin":
                     stack.append(numpy.sin(stack.pop()))
@@ -413,6 +511,12 @@ class Stem():
 
                 if token == "cot":
                     stack.append(1 / numpy.tan(stack.pop()))
+
+                if token == "deg":
+                    a = stack.pop()
+                    self.ban("choose", a, (complex))
+
+                    stack.append(numpy.radians(a))
 
                 if token == "asin":
                     stack.append(numpy.arcsin(stack.pop()))
@@ -468,7 +572,36 @@ class Stem():
                 if token == "acoth":
                     stack.append(1 / numpy.arctanh(stack.pop()))
 
+                if token == "swap":
+                    a = stack.pop()
+                    b = stack.pop()
+                    stack.append(a)
+                    stack.append(b)
 
+                if token == "drop":
+                    stack.pop()
+
+
+                if token == "quadrt":
+                    t = stack.pop()
+                    if not isinstance(t,tuple): raise TupleOnly("quadrt")
+
+                    print(t)
+
+
+                    a = t[0]
+                    b = t[1]
+                    c = t[2]
+
+
+                    d = b**2 - 4*a*c
+
+                    a1 = -b + numpy.sqrt(d)
+                    a2 = -b - numpy.sqrt(d)
+                    a1 /= 2*a
+                    a2 /= 2*a
+
+                    stack.append((a1,a2))
 
                 if token == "pi":
                     stack.append(numpy.pi)
@@ -482,14 +615,25 @@ class Stem():
 
 
     def format_answer(self,answer):
-        if answer.imag == 0:
-            answer = answer.real
-            if answer == float(answer): answer = float(answer)
-            if answer == int(answer): answer = int(answer)
-
+        if isinstance(answer,tuple): return str(tuple([self.format_answer(i) for i in answer])).replace("'","")
         return str(answer).replace("j", "i")
 
 
+    def partition(self,string,op):
+        parts = list(string.partition(op))
+
+        for i in range(len(string)):
+            parts[-1] = list(parts[-1].partition(op))
+            parts = flatten(parts)
+
+        return parts
+
+    def isnumber(self,str):
+        try:
+            x = complex(str)
+            return True
+        except:
+            return False
 
     @commands.command(brief="Do math!")
     async def math(self,ctx, *, expr):
@@ -497,73 +641,116 @@ class Stem():
         self.operators = [
 
             #Basic Operators
-            ["+",    2, False], #add
-            ["-",    2, False], #subtract
-            ["*",    3, False], #multiply
-            ["/",    3, False], #divide
-            ["%",    3, False], #modulo
-            ["^",    4, True],  #exponent
-            ["**",   4, True],  #also exponent
-            ["sqrt", 5, True],  #square root
-            ["log10",5, True],  #common log
-            ["ln",   5, True],  #natural log
-            ["log",  5, True],  #logbase
-            ["!",    5, False], #factorial
-            #Trig
-            ["sin",  5, True],  #sine
-            ["cos",  5, True],  #cosine
-            ["tan",  5, True],  #tangent
-            ["csc",  5, True],  #cosecant
-            ["sec",  5, True],  #secant
-            ["cot",  5, True],  #cotangent
-            #Inverse Trig
-            ["asin", 5, True],  # sine
-            ["acos", 5, True],  # cosine
-            ["atan", 5, True],  # tangent
-            ["acsc", 5, True],  # cosecant
-            ["asec", 5, True],  # secant
-            ["acot", 5, True],  # cotangent
-            #Hyperbolic Trig
-            ["sinh", 5, True],  #hyperbolic sine
-            ["cosh", 5, True],  #hyperbolic cosine
-            ["tanh", 5, True],  #hyperbolic tangent
-            ["csch", 5, True],  #hyperbolic cosecant
-            ["sech", 5, True],  #hyperbolic secant
-            ["coth", 5, True],  #hyperbolic cotangent
-            #Inverse Hyperbolic Trig
-            ["asinh",5, True],  # hyperbolic sine
-            ["acosh",5, True],  # hyperbolic cosine
-            ["atanh",5, True],  # hyperbolic tangent
-            ["acsch",5, True],  # hyperbolic cosecant
-            ["asech",5, True],  # hyperbolic secant
-            ["acoth",5, True],  # hyperbolic cotangent
-            #constants
-            ["pi",   7, True],  #constant pi
-            ["e",    7, True],  #constant e
+            ["+",     5, False], #add
+            ["-",     5, False], #subtract
+            ["-u",  6.5, False], #unary subtract   (lower than exp)
+            ["*",     6, False], #multiply
+            ["/",     6, False], #divide
+            ["%",     6, False], #modulo
+            ["^",     8, True],  #exponent
+            ["**",    8, True],  #also exponent
+            ["^-",    8, True],  #exponent, but the power is negative (really hacky but it works)
+            ["**-",   8, True],  #see above
+            ["sqrt",  9, True],  #square root
+            ["ln",    9, True],  #natural log
+            ["log",   9, True],  #logbase
+            [",",     1, True],  #comma (for tuple creation)
+            #logical operators
+            ["and",   4, False], #bitwise and
+            ["xor",   3, False], #bitwise xor
+            ["or",    2, False], #bitwise or
+            ["not",   7, False], #bitwise not
+            #combinatorics
+            ["!",     9, True],  #factorial
+            ["choose",9, True],  #n choose k
+            ["perm",  9, True],  #n perm k
 
-            ["(", 9999, True]   #almighty left parenthesis
+            #Trig
+            ["sin",   9, True],  #sine
+            ["cos",   9, True],  #cosine
+            ["tan",   9, True],  #tangent
+            ["csc",   9, True],  #cosecant
+            ["sec",   9, True],  #secant
+            ["cot",   9, True],  #cotangent
+            ["deg",   9, True],  #convert to degrees
+            #Inverse Trig
+            ["asin",  9, True],  # sine
+            ["acos",  9, True],  # cosine
+            ["atan",  9, True],  # tangent
+            ["acsc",  9, True],  # cosecant
+            ["asec",  9, True],  # secant
+            ["acot",  9, True],  # cotangent
+            #Hyperbolic Trig
+            ["sinh",  9, True],  #hyperbolic sine
+            ["cosh",  9, True],  #hyperbolic cosine
+            ["tanh",  9, True],  #hyperbolic tangent
+            ["csch",  9, True],  #hyperbolic cosecant
+            ["sech",  9, True],  #hyperbolic secant
+            ["coth",  9, True],  #hyperbolic cotangent
+            #Inverse Hyperbolic Trig
+            ["asinh", 9, True],  #hyperbolic sine
+            ["acosh", 9, True],  #hyperbolic cosine
+            ["atanh", 9, True],  #hyperbolic tangent
+            ["acsch", 9, True],  #hyperbolic cosecant
+            ["asech", 9, True],  #hyperbolic secant
+            ["acoth", 9, True],  #hyperbolic cotangent
+            #special
+            ["quadrt",9, True],  #solve quadratic
+            #stack operations
+            ["swap", 10, True],  #swap first two elements on stack
+            ["drop", 10, True],  #drop bottom element
+            #constants
+            ["pi",   11, True],  #constant pi
+            ["e",    11, True],  #constant e
+
+            ["(",  9999, True]   #almighty left parenthesis
         ]
 
 
-        if expr == "list" or expr == "listops":
-            return await ctx.send("```\n" + " ".join([o[0] for o in self.operators[:-1]]) + "\n```")
-
-        expression = expr
-
-        for op in sorted([o[0] for o in self.operators],key=lambda x: -len(x)):
-            if op != "-":
-                expression = expression.replace(op," " + op + " ")
-
-            expression = expression.replace("-"," -")
-
-        expression = expr.replace("(", " ( ").replace(")", " ) ").replace("i", "j").replace(",", " ")
+        if expr in ["list","listops","operators","oplist"]:
+            oplist = self.operators[:-1]
+            oplist = [o[0] for o in oplist]
+            for op in ["-u","^-","**-"]:
+                oplist.remove(op)
+            return await ctx.send("```\n" + " ".join(oplist) + "\n```")
 
 
-        for op in ["pi","sin","sinh","asin","asinh"]:
-            expression = expression.replace(op.replace("i","j"),op)
+        ops = sorted([o[0] for o in self.operators],key=lambda x: -len(x))
+        ops.append(")")
+
+        tokens = [expr.replace(" ","")]
 
 
-        tokens = shlex.split(expression)
+        for op in ops:
+            tokens = flatten([self.partition(t,op) if t not in ops else t for t in tokens])
+            tokens = [i for i in tokens if i != ""]
+        tokens = [i for i in tokens if i != ""]
+
+        tokens = [token.replace("i","j") if token not in ops else token for token in tokens]
+
+        tokenscopy = tokens[:]
+        tokens = []
+
+        #negative number handling
+        for token in tokenscopy:
+            if len(tokens) == 0:
+                tokens.append(token)
+            elif len(tokens) == 1:
+                if tokens[0] == "-":
+                    tokens[0] = "-u"
+                    tokens.append(token)
+                else:
+                    tokens.append(token)
+            else:
+                if tokens[-1] == "-" and tokens[-2] in ops and (token in ["(","pi","e"] or self.isnumber(token)):
+                    tokens.pop()
+                    tokens.append("-u")
+                    tokens.append(token)
+                else:
+                    tokens.append(token)
+
+
+        #await ctx.send(" ".join(tokens)) #PRINT TOKENS
 
         try:
             rpn = self.infix_to_postfix(tokens)
@@ -572,7 +759,7 @@ class Stem():
         except BadArgument as e:
             return await ctx.send("Uh oh! You friccin moron! " + str(e) + " is an invalid operator!")
 
-        #await ctx.send(" ".join([str(i) for i in rpn]))
+        #await ctx.send(" ".join([str(i) for i in rpn])) #PRINT RPN
 
         try:
             answer = self.parserpn(rpn)
@@ -588,10 +775,12 @@ class Stem():
             await ctx.send("Uh oh! You friccin moron! You tried to divide by zero!")
         except OverflowError:
             await ctx.send("Uh oh! You friccin moron! Your calculation overflowed!")
-        except NoComplex as e:
-            await ctx.send("Uh oh! You friccin moron! `" + str(e) + "` doesn't support complex numbers!")
+        except BadType as e:
+            await ctx.send("Uh oh! You friccin moron! " + str(e))
         except ValueError:
             await ctx.send("Uh oh! You friccin moron! You tried an operation that's undefined!")
+        except IndexError:
+            await ctx.send("Uh oh! You friccin moron! Your operations have the wrong number of arguments!")
 
 
 

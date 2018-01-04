@@ -5,6 +5,7 @@ import hashlib
 import math
 import dice
 import glob
+import asyncio
 import random
 import pickle
 from PIL import Image
@@ -210,8 +211,12 @@ class Misc():
 
 
     @commands.command(brief="Randomly decide a binary outcome.")
-    async def yesorno(self,ctx, *question):
-        await ctx.send(" ".join(question),file=discord.File(open(random.choice(["./images/yes.gif","./images/no.gif"]),mode="rb")))
+    async def yesorno(self,ctx,*,question):
+        file = random.choice([("./images/yes.gif","https://cdn.discordapp.com/attachments/191692762016382976/398267417027149826/images_yes.gif"),
+                              ("./images/no.gif","https://cdn.discordapp.com/attachments/191692762016382976/398268253048143872/images_no.gif")])
+
+        #await ctx.send(question,file=discord.File(open(file[0],mode="rb")))
+        await ctx.send("**" + question + "**\n" + file[1])
 
     #everything below this line (except setup()) was made by bottersnike and hanss
     def format_args(self, cmd):
