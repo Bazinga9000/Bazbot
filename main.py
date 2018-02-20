@@ -28,6 +28,7 @@ startup_extensions = ["textmanipulation","stem","misc","tags","boardgame","uno",
 
 bot = commands.Bot(command_prefix='b9!', description=description)
 
+
 @bot.event
 async def on_ready():
     print('Logged in as')
@@ -105,6 +106,12 @@ async def load(ctx, extension_name : str):
 
 @bot.command()
 @commands.check(owner)
+async def speak(ctx, channel : int, *, message : str):
+	ch = bot.get_channel(channel)
+	await ch.send(message)
+		
+@bot.command()
+@commands.check(owner)
 async def unload(ctx, extension_name : str):
     """Unloads an extension."""
 
@@ -113,6 +120,8 @@ async def unload(ctx, extension_name : str):
         await ctx.send("{} unloaded.".format(extension_name))
     except:
         return
+		
+	
 
 @bot.command(brief="Reload all the commands")
 @commands.check(owner)
@@ -151,6 +160,7 @@ async def _eval(ctx,*,code : str):
         embed.add_field(name=["Result","Error"][error], value=("```\n" + str(ans) + "\n```")
         , inline = True)
         await ctx.send(embed=embed)
+
 
 @bot.command(name="exec",brief="execute some code")
 @commands.check(owner)

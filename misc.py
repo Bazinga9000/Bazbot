@@ -203,6 +203,16 @@ class Misc():
         await ctx.send(message)
 
 
+    @commands.command(brief="Send a test missile alert.")
+    async def missiletest(self,ctx):
+        if random.randint(1,100) == 100:
+            await ctx.send("Test missile alert sent!")
+            await ctx.author.send("We good.")
+        else:
+            await ctx.send("Missile alert sent!")
+            await ctx.author.send("BALLISTIC MISSILE THREAT INBOUND TO HAWAII. SEEK IMMEDIATE SHELTER. THIS IS NOT A DRILL.")
+            await asyncio.sleep(38)
+            await ctx.author.send("There is no missile threat or danger to the State of Hawaii. Repeat. False Alarm.")
 
 
     @commands.command(brief="Summon me to your servers")
@@ -210,13 +220,15 @@ class Misc():
         await ctx.send("**Invite me to your discord servers by using the following link**\nhttps://discordapp.com/oauth2/authorize?&client_id=382925349144494080&scope=bot&permissions=0")
 
 
-    @commands.command(brief="Randomly decide a binary outcome.")
+    @commands.command(brief="Randomly decide a binary outcome.",aliases=["yn"])
     async def yesorno(self,ctx,*,question):
-        file = random.choice([("./images/yes.gif","https://cdn.discordapp.com/attachments/191692762016382976/398267417027149826/images_yes.gif"),
-                              ("./images/no.gif","https://cdn.discordapp.com/attachments/191692762016382976/398268253048143872/images_no.gif")])
+        mode = "mp4"
+        file = random.choice([("./images/yes." + mode,"https://cdn.discordapp.com/attachments/191692762016382976/398267417027149826/images_yes.gif","yes"),
+                              ("./images/no." + mode,"https://cdn.discordapp.com/attachments/191692762016382976/398268253048143872/images_no.gif","no")])
 
-        #await ctx.send(question,file=discord.File(open(file[0],mode="rb")))
-        await ctx.send("**" + question + "**\n" + file[1])
+        await ctx.send(question,file=discord.File(open(file[0],mode="rb"),filename=file[-1] + "." + mode)) #For those with good upload speed
+        #await ctx.send("**" + question + "**\n" + file[1]) For those with bad upload speed
+
 
     #everything below this line (except setup()) was made by bottersnike and hanss
     def format_args(self, cmd):

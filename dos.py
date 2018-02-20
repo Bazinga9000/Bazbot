@@ -121,6 +121,8 @@ class Player():
         if len(args) == 1:
             return False
 
+        card = card[:-1]
+
         if card in ["W","WF"] and args[1].upper() not in self.game.cmap:
             return False
 

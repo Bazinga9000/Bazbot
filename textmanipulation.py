@@ -1,6 +1,7 @@
 import discord
 from discord.ext import commands
-import Botzinga_9000.textcommands as c
+#import Botzinga_9000.textcommands as c
+import textcommands as c
 import importlib
 
 
@@ -86,7 +87,7 @@ class Text():
 
     @commands.command(brief="Encrypts text using a Rotation Cipher")
     async def rot(self, ctx, shift : int, *, text : str):
-        await ctx.send(c.rot(text,shift))
+        await ctx.send(c.rot(shift,text))
 
     @commands.command(brief="Encrypts text using a Vigenere Cipher")
     async def vigenere(self, ctx, key : str, *, text : str):
@@ -95,6 +96,10 @@ class Text():
     @commands.command(brief="Adds random spaces to text")
     async def randspace(self, ctx, *, text):
         await ctx.send(c.randspace(text))
+
+    @commands.command(brief="Unicode keymashing")
+    async def unimash(self, ctx, *, length : int):
+        await ctx.send(c.unimash(length))
 
     @commands.command(brief="Chain text commands together",aliases=["text"])
     async def chain(self,ctx,*, text):

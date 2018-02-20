@@ -255,8 +255,8 @@ def cthulu(len):
 
 
 newtext = ""
-def rot(plaintext, shift):
-    shifted_alphabet = alphabet[shift % 26:] + alphabet[:shift % 26]
+def rot(shift, plaintext):
+    shifted_alphabet = alphabet[int(shift) % 26:] + alphabet[:int(shift) % 26]
     newtext = ""
     for i in plaintext:
         try:
@@ -289,11 +289,15 @@ def vigenere(text,key):
     return newtext
 
 
+
+def unimash(length):
+    return "".join([chr(randint(1,100000)) for i in range(int(length))])
+
 def randspace(text):
     return "".join([i + (" " * randint(1,7)) for i in text])
 
 
-commands = [mario,elongate,bin,fullwidth,dings,mash,reverse,nato,unbin,scramble,hex,unhex,fraktur,blackboard,script,cthulu,rot,vigenere,randspace]
+commands = [mario,elongate,bin,fullwidth,dings,mash,reverse,nato,unbin,scramble,hex,unhex,fraktur,blackboard,script,cthulu,rot,vigenere,randspace,unimash]
 commandnames = [str(x).split(" ")[1] for x in commands]
 
 
@@ -304,40 +308,41 @@ class BadArguments(Exception):
     pass
 
 def chain(text):
-    arguments = shlex.split(text)[::-1]
+    arguments = shlex.split(text)
 
-    params = []
+    cmds = []
 
-    while len(arguments) != 0:
-        print(arguments,params)
-        arg = arguments.pop(0)
+    for i in range(len(arguments)):
 
-        if arg.startswith("--"):
-            command = arg.replace("--","")
-            print(command)
-            if command not in commandnames:
-                raise NoCommand
+        if not arguments[0].startswith("--"): break
 
-            index = commandnames.index(command)
-            cmd = commands[index]
+        param = arguments.pop(0)
+        param = param.replace("--","")
 
-            sig = signature(commands[index])
+        if param not in commandnames:
+            raise NoCommand
 
-            paramcount = len(sig.parameters)
+        f = commands[commandnames.index(param)]
 
-            try:
-                if paramcount == 1:
-                    params.append(cmd(params.pop(0)))
+        if len(signature(f).parameters) == 2:
+            cmds.append(arguments.pop(0))
 
-                if paramcount == 2:
-                    params.append(cmd(params.pop(0),params.pop(0)))
-            except:
-                raise BadArguments
+        cmds.append(f)
+
+    arg = " ".join(arguments)
+
+    print(cmds)
+
+    for i in range(len(cmds)):
+        if len(cmds) == 0: break
+        cmd = cmds.pop()
+
+        if len(signature(cmd).parameters) == 2:
+            arg = cmd(cmds.pop(),arg)
         else:
-            params.append(arg)
+            arg = cmd(arg)
 
 
-
-    return " ".join(params)
+    return arg
 
 

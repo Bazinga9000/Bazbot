@@ -233,7 +233,7 @@ class Tag:
             result = stack[0]
 
         elif command == "round":
-            result = round(l(paren[0]),l(paren[1]))
+            result = round(l(params[0]),l(params[1]))
 
         ###CONTEXT
         elif command == "username":

@@ -1,8 +1,10 @@
 import discord
 from discord.ext import commands
-import Botzinga_9000.FastMandelbrot as md
+#import Botzinga_9000.FastMandelbrot as md
+import FastMandelbrot as md
 from random import *
 from sympy import *
+from sympy import core
 import cmath
 import colorsys
 import matplotlib.pyplot as plt
@@ -124,12 +126,21 @@ def getcomps(compound):
 class MismatchedParenthesis(Exception):
     pass
 
-class BadArgument(Exception):
-    def __init__(self,value):
-        self.value = value
+class TooManyArguments(Exception):
+    def __init__(self,op):
+        self.op = op
 
     def __str__(self):
-        return str(self.value)
+        return str(self.op + " doesn't support that amount arguments!")
+
+
+
+class BadArgument(Exception):
+    def __init__(self,op):
+        self.op = op
+
+    def __str__(self):
+        return str(self.op)
 
 class BadType(Exception):
     def __init__(self,op,value,type):
@@ -214,11 +225,11 @@ class Stem():
     @commands.command(brief="Convert Units")
     async def convert(self, ctx, num : float, original : str, new : str):
         try:
-            x = num * ureg(original)
+            x = Decimal(num) * ureg(original)
 
             try:
-                y = x.to(ureg(new))
-                await ctx.send(str(round(y,8)))
+                y = x.to(new)
+                await ctx.send(y)
             except pint.UndefinedUnitError:
                 await ctx.send("Uh oh! You friccin moron! `" + new + "` isn't a unit!")
             except:
@@ -353,11 +364,22 @@ class Stem():
             raise BadType(op,arg,type(arg))
 
 
+    def sympyconvert(self,arg):
+        try:
+            return Decimal(float(arg))
+        except:
+            return complex(arg)
+
+    def listify(self, t):
+        return list(map(self.listify, t)) if isinstance(t, (list, tuple)) else t
+
     def parserpn(self, rpn):
 
         stack = []
 
         for token in rpn:
+            stack = [Decimal(i) if isinstance(i,float) else i for i in stack]
+
             if token not in [i[0] for i in self.operators]:
                 stack.append(token)
 
@@ -365,20 +387,20 @@ class Stem():
                 if token == "+":
                     a = stack.pop()
                     b = stack.pop()
-                    stack.append(numpy.add(a,b))
+                    stack.append(a + b)
 
                 if token == "-":
                     a = stack.pop()
                     b = stack.pop()
-                    stack.append(numpy.subtract(b,a))
+                    stack.append(b - a)
 
                 if token == "-u":
-                    stack.append(numpy.multiply(-1,stack.pop()))
+                    stack.append(-stack.pop())
 
                 if token == "*":
                     a = stack.pop()
                     b = stack.pop()
-                    stack.append(numpy.multiply(a,b))
+                    stack.append(a * b)
 
                 if token == "%":
                     a = stack.pop()
@@ -387,26 +409,33 @@ class Stem():
                     self.ban("%",a,(complex))
                     self.ban("%",b,(complex))
 
-                    stack.append(numpy.mod(b,a))
+                    stack.append(b % a)
 
                 if token == "/":
                     a = stack.pop()
                     b = stack.pop()
-                    stack.append(numpy.divide(b,a))
+                    stack.append(b / a)
 
                 if token in ["^","**"]:
                     a = stack.pop()
                     b = stack.pop()
-                    stack.append(numpy.power(b,a))
+                    try:
+                        stack.append(b ** a)
+                    except:
+                        stack.append(cmath.exp(float(a) * cmath.log(b)))
 
                 if token in ["^-","**-"]:
                     a = stack.pop()
                     b = stack.pop()
-                    stack.append(numpy.power(b,numpy.multiply(-1,a)))
+                    stack.append(b ** -a)
 
                 if token == "sqrt":
                     a = stack.pop()
-                    stack.append(numpy.sqrt(a))
+                    try:
+                        assert not isinstance(a,complex)
+                        stack.append(math.sqrt(a))
+                    except:
+                        stack.append(cmath.sqrt(a))
 
                 if token == "ln":
                     stack.append(cmath.log(stack.pop()))
@@ -414,9 +443,17 @@ class Stem():
                 if token == "log":
                     a = stack.pop()
                     if isinstance(a,tuple):
-                        stack.append(numpy.log(a[1])/numpy.log(a[0]))
+                        b = a[0]
+                        c = a[1]
+                        try:
+                            stack.append(math.log(b,c))
+                        except:
+                            stack.append(cmath.log(b,c))
                     else:
-                        stack.append(numpy.log10(a))
+                        try:
+                            stack.append(math.log(a))
+                        except:
+                            stack.append(cmath.log(a))
 
 
                 if token == ",":
@@ -428,6 +465,7 @@ class Stem():
                     else:
                         stack.append((b,a))
 
+
                 if token == "and":
                     a = stack.pop()
                     b = stack.pop()
@@ -435,7 +473,7 @@ class Stem():
                     self.ban("and",a,(complex,Decimal,tuple))
                     self.ban("and",b,(complex,Decimal,tuple))
 
-                    stack.append(numpy.bitwise_and(int(a), int(b)))
+                    stack.append(int(a) & int(b))
 
                 if token == "xor":
                     a = stack.pop()
@@ -444,7 +482,7 @@ class Stem():
                     self.ban("xor",a,(complex,Decimal,tuple))
                     self.ban("xor",b,(complex,Decimal,tuple))
 
-                    stack.append(numpy.bitwise_xor(int(a), int(b)))
+                    stack.append(int(a) ^ int(b))
 
                 if token == "or":
                     a = stack.pop()
@@ -453,14 +491,14 @@ class Stem():
                     self.ban("or",a,(complex,Decimal,tuple))
                     self.ban("or",b,(complex,Decimal,tuple))
 
-                    stack.append(numpy.bitwise_or(int(a), int(b)))
+                    stack.append(int(a) | int(b))
 
                 if token == "not":
                     a = stack.pop()
 
                     self.ban("not",a,(complex,Decimal,tuple))
 
-                    stack.append(numpy.bitwise_not(int(a)))
+                    stack.append(~int(a))
 
                 if token == "!":
                     a = stack.pop()
@@ -468,9 +506,9 @@ class Stem():
                     self.ban("!",a,(complex))
 
                     if isinstance(a,int):
-                        stack.append(numpy.math.factorial(a))
+                        stack.append(math.factorial(a))
                     else:
-                        stack.append(numpy.math.gamma(a + 1))
+                        stack.append(math.gamma(a + 1))
 
                 if token == "choose":
                     t = stack.pop()
@@ -495,82 +533,82 @@ class Stem():
                     stack.append(scipy.special.perm(a,b,exact=True))
 
                 if token == "sin":
-                    stack.append(numpy.sin(stack.pop()))
+                    stack.append(math.sin(stack.pop()))
 
                 if token == "cos":
-                    stack.append(numpy.cos(stack.pop()))
+                    stack.append(math.cos(stack.pop()))
 
                 if token == "tan":
-                    stack.append(numpy.tan(stack.pop()))
+                    stack.append(math.tan(stack.pop()))
 
                 if token == "csc":
-                    stack.append(1 / numpy.sin(stack.pop()))
+                    stack.append(1 / math.sin(stack.pop()))
 
                 if token == "sec":
-                    stack.append(1 / numpy.cos(stack.pop()))
+                    stack.append(1 / math.cos(stack.pop()))
 
                 if token == "cot":
-                    stack.append(1 / numpy.tan(stack.pop()))
+                    stack.append(1 / math.tan(stack.pop()))
 
                 if token == "deg":
                     a = stack.pop()
-                    self.ban("choose", a, (complex))
+                    self.ban("deg", a, (complex))
 
-                    stack.append(numpy.radians(a))
+                    stack.append(math.radians(a))
 
                 if token == "asin":
-                    stack.append(numpy.arcsin(stack.pop()))
+                    stack.append(math.asin(stack.pop()))
 
                 if token == "acos":
-                    stack.append(numpy.arccos(stack.pop()))
+                    stack.append(math.asin(stack.pop()))
 
                 if token == "atan":
-                    stack.append(numpy.arctan(stack.pop()))
+                    stack.append(math.asin(stack.pop()))
 
                 if token == "acsc":
-                    stack.append(1 / numpy.arcsin(stack.pop()))
+                    stack.append(1 / math.asin(stack.pop()))
 
                 if token == "asec":
-                    stack.append(1 / numpy.arccos(stack.pop()))
+                    stack.append(1 / math.acos(stack.pop()))
 
                 if token == "acot":
-                    stack.append(1 / numpy.arctan(stack.pop()))
+                    stack.append(1 / math.atan(stack.pop()))
 
                 if token == "sinh":
-                    stack.append(numpy.sinh(stack.pop()))
+                    stack.append(math.sinh(stack.pop()))
 
                 if token == "cosh":
-                    stack.append(numpy.cosh(stack.pop()))
+                    stack.append(math.cosh(stack.pop()))
 
                 if token == "tanh":
-                    stack.append(numpy.tanh(stack.pop()))
+                    stack.append(math.tanh(stack.pop()))
 
                 if token == "csch":
-                    stack.append(1 / numpy.sinh(stack.pop()))
+                    stack.append(1 / math.sinh(stack.pop()))
 
                 if token == "sech":
-                    stack.append(1 / numpy.cosh(stack.pop()))
+                    stack.append(1 / math.cosh(stack.pop()))
 
                 if token == "coth":
-                    stack.append(1 / numpy.tanh(stack.pop()))
+                    stack.append(1 / math.tanh(stack.pop()))
 
                 if token == "asinh":
-                    stack.append(numpy.arcsinh(stack.pop()))
+                    stack.append(math.asinh(stack.pop()))
 
                 if token == "acosh":
-                    stack.append(numpy.arccosh(stack.pop()))
+                    stack.append(math.acosh(stack.pop()))
 
                 if token == "atanh":
-                    stack.append(numpy.arctanh(stack.pop()))
+                    stack.append(math.atanh(stack.pop()))
 
                 if token == "acsch":
-                    stack.append(1 / numpy.arcsinh(stack.pop()))
+                    stack.append(1 / math.asinh(stack.pop()))
 
                 if token == "asech":
-                    stack.append(1 / numpy.arccosh(stack.pop()))
+                    stack.append(1 / math.acosh(stack.pop()))
 
                 if token == "acoth":
-                    stack.append(1 / numpy.arctanh(stack.pop()))
+                    stack.append(1 / math.atanh(stack.pop()))
 
                 if token == "swap":
                     a = stack.pop()
@@ -581,27 +619,31 @@ class Stem():
                 if token == "drop":
                     stack.pop()
 
+                if token == "flat":
+                    a = stack.pop()
+                    self.ban("flat",a,(complex,Decimal,int))
 
-                if token == "quadrt":
-                    t = stack.pop()
-                    if not isinstance(t,tuple): raise TupleOnly("quadrt")
+                    for i in a:
+                        stack.append(i)
 
-                    print(t)
+                if token == "solve":
+                    x = Symbol('x')
+                    a = stack.pop()
 
+                    self.ban("solve",a,(complex,Decimal,int))
 
-                    a = t[0]
-                    b = t[1]
-                    c = t[2]
+                    polynomial = 0
 
+                    if len(a) > 10: raise TooManyArguments("solve")
 
-                    d = b**2 - 4*a*c
+                    t = reversed(a)
 
-                    a1 = -b + numpy.sqrt(d)
-                    a2 = -b - numpy.sqrt(d)
-                    a1 /= 2*a
-                    a2 /= 2*a
+                    for degree,coeff in enumerate(t):
+                        polynomial += coeff * (x ** degree)
 
-                    stack.append((a1,a2))
+                    solns = solve(polynomial,x)
+                    solns = [self.sympyconvert(N(i)) for i in solns]
+                    stack.append(tuple(solns))
 
                 if token == "pi":
                     stack.append(numpy.pi)
@@ -610,14 +652,68 @@ class Stem():
                     stack.append(numpy.e)
 
 
+                if token == "[":
+                    a = stack.pop()
+
+                    if isinstance(a,tuple):
+                        a = [i for i in a]
+                    else:
+                        a = [a]
+
+                    print([type(i) for i in a])
+                    stack.append(numpy.array(self.listify(a)))
+
+                if token == ";":
+                    a = stack.pop()
+                    b = stack.pop()
+
+                    print(a,b)
+
+                    if isinstance(b,tuple):
+                        a = tuple(a)
+                        b = tuple(b)
+                        if isinstance(b[0],tuple):
+                            b = list(b)
+                            b.append(a)
+                            stack.append(tuple(b))
+                        else:
+                            stack.append((b,a))
+                    else:
+                        stack.append(((b,), (a,)))
+
+
+                if token == "T":
+                    stack.append(numpy.transpose(stack.pop()))
+
+                if token == "det":
+                    stack.append(numpy.linalg.det(stack.pop()))
+
+                if token == "lsolve":
+                    t = stack.pop()
+                    a = t[0]
+                    b = t[1]
+                    solns = numpy.linalg.solve(a,b)
+                    stack.append([[self.litparse(i[0])] for i in solns])
+
+
+
 
         return stack
 
-
     def format_answer(self,answer):
+        print(type(answer))
         if isinstance(answer,tuple): return str(tuple([self.format_answer(i) for i in answer])).replace("'","")
-        return str(answer).replace("j", "i")
-
+        if type(answer) in [list,numpy.array,numpy.ndarray]:
+            return "[" + " ".join([self.format_answer(i) for i in answer]).replace("'","") + "]"
+        if isinstance(answer,complex):
+            if answer.imag == 0:
+                return self.format_answer(Decimal(answer.real))
+            else:
+                return str(answer).replace("j","i")[1:-1]
+        if answer == int(answer):
+            return str(int(answer))
+        else:
+            return str(answer)
 
     def partition(self,string,op):
         parts = list(string.partition(op))
@@ -628,12 +724,6 @@ class Stem():
 
         return parts
 
-    def isnumber(self,str):
-        try:
-            x = complex(str)
-            return True
-        except:
-            return False
 
     @commands.command(brief="Do math!")
     async def math(self,ctx, *, expr):
@@ -655,6 +745,8 @@ class Stem():
             ["ln",    9, True],  #natural log
             ["log",   9, True],  #logbase
             [",",     1, True],  #comma (for tuple creation)
+
+
             #logical operators
             ["and",   4, False], #bitwise and
             ["xor",   3, False], #bitwise xor
@@ -695,14 +787,23 @@ class Stem():
             ["asech", 9, True],  #hyperbolic secant
             ["acoth", 9, True],  #hyperbolic cotangent
             #special
-            ["quadrt",9, True],  #solve quadratic
+            ["solve", 9, True],  #solve any polynomial
             #stack operations
             ["swap", 10, True],  #swap first two elements on stack
             ["drop", 10, True],  #drop bottom element
+            ["flat", 10, True],  #flatten a tuple
+
+
+            # matrix ops
+            [";",     0, False], #semicolon (for multidimensional tuple creation)
+            ["T",     9, False], #transpose
+            ["det",   9, False], #determinant
+            ["lsolve",9, False], #solve systems of linear eq
             #constants
             ["pi",   11, True],  #constant pi
             ["e",    11, True],  #constant e
 
+            ["[",  9998, True],  #slightly less mighty left bracket
             ["(",  9999, True]   #almighty left parenthesis
         ]
 
@@ -718,7 +819,7 @@ class Stem():
         ops = sorted([o[0] for o in self.operators],key=lambda x: -len(x))
         ops.append(")")
 
-        tokens = [expr.replace(" ","")]
+        tokens = [expr.replace(" ","").replace("[","[(").replace("]",")")]
 
 
         for op in ops:
@@ -728,28 +829,27 @@ class Stem():
 
         tokens = [token.replace("i","j") if token not in ops else token for token in tokens]
 
-        tokenscopy = tokens[:]
-        tokens = []
 
-        #negative number handling
-        for token in tokenscopy:
-            if len(tokens) == 0:
-                tokens.append(token)
-            elif len(tokens) == 1:
-                if tokens[0] == "-":
+        #negative handling
+        for i in range(len(tokens)-1,-1,-1):
+            token = tokens[i]
+
+            if token == "-":
+                if i == 0:
                     tokens[0] = "-u"
-                    tokens.append(token)
                 else:
-                    tokens.append(token)
-            else:
-                if tokens[-1] == "-" and tokens[-2] in ops and (token in ["(","pi","e"] or self.isnumber(token)):
-                    tokens.pop()
-                    tokens.append("-u")
-                    tokens.append(token)
-                else:
-                    tokens.append(token)
+                    nexttoken = tokens[i+1]
+                    prevtoken = tokens[i-1]
+                    if prevtoken != ")":
+                        if prevtoken in ops:
+                            tokens[i] = "-u"
+                            tokens[i] = tokens[i+1]
+                            tokens[i+1] = "-u"
 
 
+
+
+        #print(tokens)
         #await ctx.send(" ".join(tokens)) #PRINT TOKENS
 
         try:
@@ -776,6 +876,8 @@ class Stem():
         except OverflowError:
             await ctx.send("Uh oh! You friccin moron! Your calculation overflowed!")
         except BadType as e:
+            await ctx.send("Uh oh! You friccin moron! " + str(e))
+        except TooManyArguments as e:
             await ctx.send("Uh oh! You friccin moron! " + str(e))
         except ValueError:
             await ctx.send("Uh oh! You friccin moron! You tried an operation that's undefined!")
