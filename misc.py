@@ -223,10 +223,21 @@ class Misc():
     @commands.command(brief="Randomly decide a binary outcome.",aliases=["yn"])
     async def yesorno(self,ctx,*,question):
         mode = "mp4"
-        file = random.choice([("./images/yes." + mode,"https://cdn.discordapp.com/attachments/191692762016382976/398267417027149826/images_yes.gif","yes"),
-                              ("./images/no." + mode,"https://cdn.discordapp.com/attachments/191692762016382976/398268253048143872/images_no.gif","no")])
 
-        await ctx.send(question,file=discord.File(open(file[0],mode="rb"),filename=file[-1] + "." + mode)) #For those with good upload speed
+        images = ["./images/yes." + mode,
+                  "./images/no." + mode,
+                  "maybe"]
+
+        links = ["https://cdn.discordapp.com/attachments/191692762016382976/398267417027149826/images_yes.gif",
+                 "https://cdn.discordapp.com/attachments/191692762016382976/398268253048143872/images_no.gif",
+                 "maybe"]
+
+        filenames = ["yes","no","…"]
+
+        file = random.randint(0,1)
+        #if random.randint(0,100) == 0: file = 2
+
+        await ctx.send(question,file=discord.File(open(images[file],mode="rb"),filename=filenames[file] + "." + mode)) #For those with good upload speed
         #await ctx.send("**" + question + "**\n" + file[1]) For those with bad upload speed
 
 
