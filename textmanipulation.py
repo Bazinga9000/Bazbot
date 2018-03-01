@@ -97,6 +97,10 @@ class Text():
     async def randspace(self, ctx, *, text):
         await ctx.send(c.randspace(text))
 
+    @commands.command(brief="Makes Your Text Like This")
+    async def capitalize(self, ctx, *, text):
+        await ctx.send(c.capitalize(text))
+
     @commands.command(brief="Unicode keymashing")
     async def unimash(self, ctx, *, length : int):
         await ctx.send(c.unimash(length))

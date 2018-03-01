@@ -17,7 +17,7 @@ import scipy
 from scipy import special
 from scipy import misc
 from decimal import Decimal
-ureg = pint.UnitRegistry()
+ureg = pint.UnitRegistry("./units.txt")
 
 
 x, t, z, nu = symbols('x t z nu')

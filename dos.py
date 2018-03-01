@@ -377,6 +377,10 @@ class DosGame():
         except:
             self.pdb[ctx.guild.id] = {}
 
+
+        if ctx.guild is None:
+            return await ctx.send("Uh oh! You friccin moron! You can't use this command in DMs!")
+
     @dos.command()
     async def create(self,ctx,*threshold):
 
@@ -482,9 +486,9 @@ class DosGame():
 
 
         message += "It is now **" + game.players[game.turn].name + "'s** Turn!"
-        if game.drawstack != 0: 
+        if game.drawstack != 0:
             message += "\n***THERE ARE " + str(game.drawstack) + " CARDS TO BE DRAWN***\n"
-            
+
         return message
 
     def place(self,num):
@@ -514,9 +518,9 @@ class DosGame():
                       " (Final Score: " + str(player.score) + ")\n"
 
         message += "```"
-        
+
         return message
-        
+
     @dos.command()
     async def scores(self,ctx):
         if not self.ingame(ctx):
@@ -526,7 +530,7 @@ class DosGame():
 
         if not game.started:
             return await ctx.send("Uh oh! You friccin moron! This game hasn't started yet!")
-        
+
         await ctx.send(self.scoremessage(game))
 
     @dos.command()

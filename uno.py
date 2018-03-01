@@ -198,6 +198,10 @@ class UnoGame():
         except:
             self.pdb[ctx.guild.id] = {}
 
+
+        if ctx.guild is None:
+            return await ctx.send("Uh oh! You friccin moron! You can't use this command in DMs!")
+
     @uno.command()
     async def create(self,ctx,*threshold):
 

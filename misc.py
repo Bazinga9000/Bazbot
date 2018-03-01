@@ -12,6 +12,8 @@ from PIL import Image
 import aiohttp
 from io import BytesIO
 import warnings
+import itertools
+from collections import Counter
 warnings.simplefilter('error', Image.DecompressionBombWarning)
 
 x, t, z, nu = symbols('x t z nu')
@@ -23,6 +25,7 @@ class Misc():
     def __init__(self, bot):
         self.bot = bot
         self.ratel = lambda x: int(hashlib.sha256(x.lower().encode('utf-8')).hexdigest(),16) % 101
+        self.ts = False
 
     def crop(self, im, new_width, new_height):
         width, height = im.size   # Get dimensions
@@ -221,24 +224,29 @@ class Misc():
 
 
     @commands.command(brief="Randomly decide a binary outcome.",aliases=["yn"])
+    @commands.cooldown(1,5,type=commands.BucketType.user)
     async def yesorno(self,ctx,*,question):
         mode = "mp4"
 
+        if "--gif" in question:
+            mode = "gif"
+            question = question.replace("--gif","")
+
         images = ["./images/yes." + mode,
                   "./images/no." + mode,
-                  "maybe"]
+                  "./images/maybe.mp4"]
 
         links = ["https://cdn.discordapp.com/attachments/191692762016382976/398267417027149826/images_yes.gif",
                  "https://cdn.discordapp.com/attachments/191692762016382976/398268253048143872/images_no.gif",
                  "maybe"]
 
-        filenames = ["yes","no","…"]
+        filenames = ["yes","no","hmmm"]
 
         file = random.randint(0,1)
-        #if random.randint(0,100) == 0: file = 2
+        if random.randint(0,50) == 0: file = 2
 
         await ctx.send(question,file=discord.File(open(images[file],mode="rb"),filename=filenames[file] + "." + mode)) #For those with good upload speed
-        #await ctx.send("**" + question + "**\n" + file[1]) For those with bad upload speed
+        #await ctx.send("**" + question + "**\n" + links[file]) For those with bad upload speed
 
 
     #everything below this line (except setup()) was made by bottersnike and hanss
@@ -352,6 +360,568 @@ class Misc():
 
         # d += '\n*Made by Bottersnike#3605 and hanss314#0128*'
         return await ctx.send(d)
+
+
+    @commands.command(brief="The World! Stop time!")
+    async def theworld(self,ctx):
+        if ctx.guild is None:
+            return await ctx.send("You can't use that ability here...")
+
+        if self.ts:
+            return await ctx.send("Time is already stopped...")
+
+        perms = [x for x in iter(ctx.channel.permissions_for(ctx.guild.me))]
+
+        if not (perms[1][1] or perms[11][1]):
+            return await ctx.send("I am not powerful enough to use this ability...")
+
+        roles = []
+
+        valid = ["mod","admin","owner","staff","dio"]
+
+        for role in ctx.author.roles:
+            if role.name == "@everyone":
+                everyone = role
+
+
+            roles.append(role.name.lower())
+
+        if not any(x in valid for x in roles) and ctx.author != ctx.guild.owner:
+            return await ctx.send("You are not powerful enough to use this ability...")
+
+        self.ts = True
+
+        ch = ctx.channel
+
+        ov = ch.overwrites
+
+
+
+        await ctx.send("***The World! Stop Time!***")
+        await ctx.channel.set_permissions(self.bot.user, send_messages=True)
+        await ctx.channel.set_permissions(ctx.author,send_messages=True)
+
+        if ov == []:
+            await ctx.channel.set_permissions(everyone,send_messages=False)
+
+
+        for h in ov:
+            if h[0] != self.bot.user: await ctx.channel.set_permissions(h[0],send_messages=False)
+
+
+        await asyncio.sleep(5)
+
+        await ctx.channel.set_permissions(ctx.author,overwrite=None)
+        await ctx.channel.set_permissions(self.bot.user, overwrite=None)
+
+        if ov == []:
+            await ctx.channel.set_permissions(everyone, send_messages=True)
+
+        for h in ov:
+            await ctx.channel.set_permissions(h[0],overwrite=h[1])
+
+
+        await ctx.send("*Time has resumed.*")
+
+        self.ts = False
+
+
+    def subset(self,small,big):
+        for item in small:
+            if small.count(item) > big.count(item): return False
+
+        return True
+
+    @commands.command(brief="Spin the wheel of random digits and see if you get something cool.")
+    @commands.cooldown(1,3,type=commands.BucketType.user)
+    async def idpoker(self,ctx, *id):
+        id = " ".join(id)
+        if id == "message":
+            handtype = "Message"
+            sid = str(ctx.message.id)
+        elif id == "user":
+            handtype = "User"
+            sid = str(ctx.author.id)
+        else:
+            try:
+                handtype = "Provided"
+                int(id)
+                sid = str(id)
+            except:
+                handtype = "Random"
+                sid = "".join([str(random.randint(0,9)) for i in range(18)])
+
+
+        kinds = [len(list(g)) for k, g in itertools.groupby(sid)]
+        kinds = [i for i in kinds if i != 1]
+        kinds = tuple(sorted(kinds))
+
+
+        names = {
+            (): "High Card",
+            (2,): "Pair",
+            (2, 2): "Wide Pair",
+            (2, 2, 2): "Tall Pair",
+            (3,): "House",
+            (2, 3): "Full House",
+            (2, 2, 3): "Wide House",
+            (2, 2, 2, 2): "Long Pair",
+            (4,): "Dragon",
+            (2, 2, 2, 3): "Tall House",
+            (2, 4): "Full Dragon",
+            (3, 3): "Mansion",
+            (2, 2, 2, 2, 2): "Deep Pair",
+            (2, 3, 3): "Full Mansion",
+            (2, 2, 4): "Wide Dragon",
+            (2, 2, 2, 2, 3): "Long House",
+            (2, 2, 3, 3): "Wide Mansion",
+            (5,): "Bronze",
+            (3, 4): "Dragon House",
+            (2, 2, 2, 4): "Tall Dragon",
+            (2, 5): "Full Bronze",
+            (2, 3, 4): "Full Dragon House",
+            (2, 2, 2, 2, 2, 2): "Rare Pair",
+            (2, 2, 5): "Wide Bronze",
+            (2, 2, 2, 3, 3): "Tall Mansion",
+            (2, 2, 3, 4): "Wide Dragon House",
+            (3, 3, 3): "Villa",
+            (2, 2, 2, 2, 2, 3): "Deep House",
+            (2, 2, 2, 2, 4): "Long Dragon",
+            (6,): "Silver",
+            (3, 5): "Bronze House",
+            (2, 6): "Full Silver",
+            (2, 3, 3, 3): "Full Villa",
+            (2, 2, 2, 5): "Tall Bronze",
+            (2, 3, 5): "Full Bronze House",
+            (4, 4): "Hydra",
+            (3, 3, 4): "Dragon Mansion",
+            (2, 4, 4): "Full Hydra",
+            (2, 2, 6): "Wide Silver",
+            (2, 2, 2, 3, 4): "Tall Dragon House",
+            (2, 2, 2, 2, 2, 2, 2): "Great Pair",
+            (2, 2, 2, 2, 3, 3): "Long Mansion",
+            (2, 2, 3, 3, 3): "Wide Villa",
+            (2, 3, 3, 4): "Full Dragon Mansion",
+            (2, 2, 3, 5): "Wide Bronze House",
+            (7,): "Gold",
+            (3, 6): "Silver House",
+            (4, 5): "Bronze Dragon",
+            (2, 2, 2, 2, 5): "Long Bronze",
+            (2, 2, 2, 2, 2, 4): "Deep Dragon",
+            (2, 2, 4, 4): "Wide Hydra",
+            (2, 7): "Full Gold",
+            (2, 2, 2, 2, 2, 2, 3): "Rare House",
+            (2, 2, 2, 6): "Tall Silver",
+            (2, 4, 5): "Full Bronze Dragon",
+            (2, 3, 6): "Full Silver House",
+            (3, 3, 5): "Bronze Mansion",
+            (3, 4, 4): "Hydra House",
+            (2, 2, 3, 3, 4): "Wide Dragon Mansion",
+            (2, 2, 7): "Wide Gold",
+            (3, 3, 3, 3): "Castle",
+            (2, 2, 2, 3, 5): "Tall Bronze House",
+            (2, 2, 2, 2, 3, 4): "Long Dragon House",
+            (2, 2, 2, 3, 3, 3): "Tall Villa",
+            (8,): "Platinum",
+            (2, 3, 3, 5): "Full Bronze Mansion",
+            (2, 3, 4, 4): "Full Hydra House",
+            (2, 2, 4, 5): "Wide Bronze Dragon",
+            (2, 2, 3, 6): "Wide Silver House",
+            (2, 2, 2, 4, 4): "Tall Hydra",
+            (4, 6): "Silver Dragon",
+            (3, 7): "Gold House",
+            (2, 8): "Full Platinum",
+            (2, 2, 2, 2, 2, 3, 3): "Deep Mansion",
+            (2, 3, 3, 3, 3): "Full Castle",
+            (2, 2, 2, 2, 6): "Long Silver",
+            (5, 5): "Comet",
+            (2, 2, 2, 2, 2, 2, 2, 2): "Rad Pair",
+            (3, 4, 5): "Bronze Dragon House",
+            (2, 2, 2, 2, 2, 5): "Deep Bronze",
+            (3, 3, 3, 4): "Dragon Villa",
+            (2, 4, 6): "Full Silver Dragon",
+            (2, 2, 2, 7): "Tall Gold",
+            (2, 3, 7): "Full Gold House",
+            (3, 3, 6): "Silver Mansion",
+            (2, 5, 5): "Full Comet",
+            (2, 2, 2, 2, 2, 2, 4): "Rare Dragon",
+            (2, 2, 8): "Wide Platinum",
+            (2, 2, 3, 3, 5): "Wide Bronze Mansion",
+            (2, 2, 3, 4, 4): "Wide Hydra House",
+            (2, 2, 2, 3, 3, 4): "Tall Dragon Mansion",
+            (2, 3, 4, 5): "Full Bronze Dragon House",
+            (9,): "Diamond",
+            (2, 2, 2, 4, 5): "Tall Bronze Dragon",
+            (2, 2, 2, 3, 6): "Tall Silver House",
+            (2, 3, 3, 3, 4): "Full Dragon Villa",
+            (4, 4, 4): "Basilisk",
+            (4, 7): "Gold Dragon",
+            (3, 8): "Platinum House",
+            (5, 6): "Onyx",
+            (2, 2, 2, 2, 2, 2, 2, 3): "Great House",
+            (2, 2, 2, 2, 3, 5): "Long Bronze House",
+            (2, 3, 3, 6): "Full Silver Mansion",
+            (2, 2, 4, 6): "Wide Silver Dragon",
+            (2, 2, 3, 7): "Wide Gold House",
+            (2, 9): "Full Diamond",
+            (2, 2, 3, 3, 3, 3): "Wide Castle",
+            (3, 3, 4, 4): "Hydra Mansion",
+            (2, 2, 5, 5): "Wide Comet",
+            (2, 2, 2, 2, 4, 4): "Long Hydra",
+            (3, 4, 6): "Silver Dragon House",
+            (2, 4, 7): "Full Gold Dragon",
+            (2, 5, 6): "Full Onyx",
+            (2, 3, 8): "Full Platinum House",
+            (2, 2, 2, 2, 2, 3, 4): "Deep Dragon House",
+            (3, 3, 3, 5): "Bronze Villa",
+            (2, 2, 2, 2, 3, 3, 3): "Long Villa",
+            (2, 2, 2, 2, 7): "Long Gold",
+            (2, 4, 4, 4): "Full Basilisk",
+            (2, 2, 2, 8): "Tall Platinum",
+            (3, 5, 5): "Comet House",
+            (3, 3, 7): "Gold Mansion",
+            (2, 2, 2, 2, 2, 6): "Deep Silver",
+            (4, 4, 5): "Bronze Hydra",
+            (2, 2, 9): "Wide Diamond",
+            (2, 2, 3, 4, 5): "Wide Bronze Dragon House",
+            (10,): "Luna",
+            (2, 3, 4, 6): "Full Silver Dragon House",
+            (4, 8): "Platinum Dragon",
+            (5, 7): "Topaz",
+            (2, 2, 2, 2, 2, 2, 5): "Rare Bronze",
+            (3, 9): "Diamond House",
+            (3, 3, 3, 3, 3): "Fortress",
+            (2, 2, 3, 3, 6): "Wide Silver Mansion",
+            (2, 3, 3, 4, 4): "Full Hydra Mansion",
+            (2, 10): "Full Luna",
+            (2, 3, 3, 3, 5): "Full Bronze Villa",
+            (2, 2, 3, 3, 3, 4): "Wide Dragon Villa",
+            (3, 3, 4, 5): "Bronze Dragon Mansion",
+            (2, 2, 2, 3, 7): "Tall Gold House",
+            (2, 2, 2, 3, 3, 5): "Tall Bronze Mansion",
+            (2, 3, 3, 7): "Full Gold Mansion",
+            (2, 2, 4, 7): "Wide Gold Dragon",
+            (2, 3, 5, 5): "Full Comet House",
+            (2, 2, 5, 6): "Wide Onyx",
+            (2, 2, 2, 4, 6): "Tall Silver Dragon",
+            (2, 4, 4, 5): "Full Bronze Hydra",
+            (2, 2, 2, 3, 4, 4): "Tall Hydra House",
+            (2, 2, 3, 8): "Wide Platinum House",
+            (6, 6): "Sin",
+            (2, 2, 2, 2, 2, 2, 3, 3): "Rare Mansion",
+            (3, 5, 6): "Onyx House",
+            (2, 2, 2, 2, 3, 6): "Long Silver House",
+            (2, 2, 2, 5, 5): "Tall Comet",
+            (3, 4, 7): "Gold Dragon House",
+            (2, 2, 4, 4, 4): "Wide Basilisk",
+            (2, 4, 8): "Full Platinum Dragon",
+            (2, 5, 7): "Full Topaz",
+            (2, 2, 2, 2, 4, 5): "Long Bronze Dragon",
+            (2, 3, 9): "Full Diamond House",
+            (3, 4, 4, 4): "Basilisk House",
+            (3, 3, 3, 6): "Silver Villa",
+            (2, 2, 2, 9): "Tall Diamond",
+            (2, 2, 2, 2, 2, 2, 2, 2, 2): "Fab Pair",
+            (4, 4, 6): "Silver Hydra",
+            (3, 3, 8): "Platinum Mansion",
+            (2, 2, 2, 2, 8): "Long Platinum",
+            (4, 5, 5): "Comet Dragon",
+            (3, 3, 3, 3, 4): "Dragon Castle",
+            (2, 6, 6): "Full Sin",
+            (2, 2, 2, 2, 3, 3, 4): "Long Dragon Mansion",
+            (2, 2, 10): "Wide Luna",
+            (11,): "Terra",
+            (2, 2, 2, 2, 2, 2, 2, 4): "Great Dragon",
+            (2, 2, 2, 2, 2, 7): "Deep Gold",
+            (5, 8): "Ruby",
+            (4, 9): "Diamond Dragon",
+            (3, 10): "Luna House",
+            (2, 3, 3, 3, 3, 3): "Full Fortress",
+            (6, 7): "Citrine",
+            (2, 2, 2, 2, 2, 3, 5): "Deep Bronze House",
+            (2, 11): "Full Terra",
+            (2, 2, 2, 3, 3, 3, 3): "Tall Castle",
+            (2, 3, 3, 4, 5): "Full Bronze Dragon Mansion",
+            (2, 3, 4, 7): "Full Gold Dragon House",
+            (2, 2, 3, 4, 6): "Wide Silver Dragon House",
+            (2, 3, 5, 6): "Full Onyx House",
+            (2, 2, 2, 2, 2, 4, 4): "Deep Hydra",
+            (2, 2, 3, 3, 7): "Wide Gold Mansion",
+            (2, 4, 4, 6): "Full Silver Hydra",
+            (2, 2, 3, 5, 5): "Wide Comet House",
+            (2, 2, 5, 7): "Wide Topaz",
+            (2, 3, 3, 8): "Full Platinum Mansion",
+            (2, 2, 4, 8): "Wide Platinum Dragon",
+            (2, 2, 4, 4, 5): "Wide Bronze Hydra",
+            (2, 4, 5, 5): "Full Comet Dragon",
+            (3, 3, 4, 6): "Silver Dragon Mansion",
+            (3, 4, 4, 5): "Bronze Hydra House",
+            (2, 2, 3, 9): "Wide Diamond House",
+            (3, 5, 7): "Topaz House",
+            (2, 2, 2, 5, 6): "Tall Onyx",
+            (2, 3, 4, 4, 4): "Full Basilisk House",
+            (2, 2, 2, 3, 8): "Tall Platinum House",
+            (3, 4, 8): "Platinum Dragon House",
+            (2, 2, 2, 4, 7): "Tall Gold Dragon",
+            (2, 5, 8): "Full Ruby",
+            (4, 5, 6): "Onyx Dragon",
+            (2, 4, 9): "Full Diamond Dragon",
+            (2, 3, 3, 3, 6): "Full Silver Villa",
+            (2, 6, 7): "Full Citrine",
+            (2, 2, 2, 3, 4, 5): "Tall Bronze Dragon House",
+            (2, 3, 10): "Full Luna House",
+            (3, 3, 5, 5): "Comet Mansion",
+            (2, 2, 6, 6): "Wide Sin",
+            (2, 2, 3, 3, 4, 4): "Wide Hydra Mansion",
+            (12,): "Sol",
+            (2, 2, 2, 2, 2, 2, 6): "Rare Silver",
+            (3, 6, 6): "Sin House",
+            (4, 4, 7): "Gold Hydra",
+            (3, 3, 9): "Diamond Mansion",
+            (3, 3, 3, 7): "Gold Villa",
+            (2, 2, 2, 3, 3, 6): "Tall Silver Mansion",
+            (2, 2, 2, 10): "Tall Luna",
+            (3, 3, 3, 4, 4): "Hydra Villa",
+            (2, 2, 3, 3, 3, 5): "Wide Bronze Villa",
+            (2, 2, 11): "Wide Terra",
+            (2, 2, 2, 2, 9): "Long Diamond",
+            (5, 9): "Amber",
+            (4, 10): "Luna Dragon",
+            (2, 3, 3, 3, 3, 4): "Full Dragon Castle",
+            (3, 3, 3, 3, 5): "Bronze Castle",
+            (2, 2, 2, 2, 3, 7): "Long Gold House",
+            (6, 8): "Quartz",
+            (3, 11): "Terra House",
+            (2, 12): "Full Sol",
+            (2, 2, 2, 2, 4, 6): "Long Silver Dragon",
+            (5, 5, 5): "Meteor",
+            (2, 2, 2, 4, 4, 4): "Tall Basilisk",
+            (2, 2, 2, 2, 5, 5): "Long Comet",
+            (4, 4, 4, 4): "Leviathan",
+            (7, 7): "Opposition",
+            (2, 3, 4, 8): "Full Platinum Dragon House",
+            (2, 4, 5, 6): "Full Onyx Dragon",
+            (2, 3, 5, 7): "Full Topaz House",
+            (13,): "Galaxy",
+            (2, 2, 2, 2, 2, 8): "Deep Platinum",
+            (2, 4, 4, 7): "Full Gold Hydra",
+            (2, 2, 5, 8): "Wide Ruby",
+            (2, 3, 6, 6): "Full Sin House",
+            (2, 2, 6, 7): "Wide Citrine",
+            (3, 5, 8): "Ruby House",
+            (2, 3, 4, 4, 5): "Full Bronze Hydra House",
+            (2, 3, 3, 9): "Full Diamond Mansion",
+            (3, 4, 4, 6): "Silver Hydra House",
+            (2, 2, 4, 9): "Wide Diamond Dragon",
+            (3, 6, 7): "Citrine House",
+            (3, 4, 9): "Diamond Dragon House",
+            (2, 5, 9): "Full Amber",
+            (2, 2, 3, 10): "Wide Luna House",
+            (2, 4, 10): "Full Luna Dragon",
+            (2, 2, 3, 5, 6): "Wide Onyx House",
+            (4, 5, 7): "Topaz Dragon",
+            (3, 4, 5, 5): "Comet Dragon House",
+            (2, 3, 3, 4, 6): "Full Silver Dragon Mansion",
+            (3, 3, 5, 6): "Onyx Mansion",
+            (2, 2, 3, 4, 7): "Wide Gold Dragon House",
+            (2, 6, 8): "Full Quartz",
+            (3, 3, 4, 7): "Gold Dragon Mansion",
+            (2, 3, 11): "Full Terra House",
+            (3, 3, 10): "Luna Mansion",
+            (4, 6, 6): "Sin Dragon",
+            (2, 2, 3, 3, 8): "Wide Platinum Mansion",
+            (2, 2, 4, 5, 5): "Wide Comet Dragon",
+            (2, 7, 7): "Full Opposition",
+            (4, 4, 8): "Platinum Hydra",
+            (2, 3, 3, 5, 5): "Full Comet Mansion",
+            (2, 2, 12): "Wide Sol",
+            (5, 5, 6): "Silver Comet",
+            (2, 2, 4, 4, 6): "Wide Silver Hydra",
+            (2, 5, 5, 5): "Full Meteor",
+            (2, 2, 2, 11): "Tall Terra",
+            (5, 10): "Bronze Luna",
+            (4, 11): "Terra Dragon",
+            (3, 3, 3, 4, 5): "Bronze Dragon Villa",
+            (2, 3, 3, 3, 7): "Full Gold Villa",
+            (2, 2, 2, 3, 9): "Tall Diamond House",
+            (3, 3, 3, 8): "Platinum Villa",
+            (6, 9): "Sapphire",
+            (3, 12): "Sol House",
+            (2, 2, 2, 5, 7): "Tall Topaz",
+            (4, 4, 4, 5): "Bronze Basilisk",
+            (7, 8): "Zircon",
+            (2, 13): "Full Galaxy",
+            (2, 2, 2, 4, 8): "Tall Platinum Dragon",
+            (3, 3, 3, 3, 3, 3): "Palace",
+            (3, 3, 4, 4, 4): "Basilisk Mansion",
+            (2, 2, 2, 6, 6): "Tall Sin",
+            (2, 4, 4, 4, 4): "Full Leviathan",
+            (2, 2, 2, 2, 10): "Long Luna",
+            (14,): "Heaven",
+            (3, 3, 3, 3, 6): "Silver Castle",
+            (2, 5, 10): "Full Bronze Luna",
+            (2, 4, 11): "Full Terra Dragon",
+            (3, 4, 5, 6): "Onyx Dragon House",
+            (2, 3, 6, 7): "Full Citrine House",
+            (2, 3, 4, 9): "Full Diamond Dragon House",
+            (3, 6, 8): "Quartz House",
+            (3, 5, 9): "Amber House",
+            (2, 6, 9): "Full Sapphire",
+            (4, 6, 7): "Citrine Dragon",
+            (3, 4, 10): "Luna Dragon House",
+            (2, 3, 12): "Full Sol House",
+            (2, 4, 5, 7): "Full Topaz Dragon",
+            (4, 5, 8): "Ruby Dragon",
+            (2, 7, 8): "Full Zircon",
+            (2, 3, 5, 8): "Full Ruby House",
+            (2, 5, 5, 6): "Full Silver Comet",
+            (3, 3, 5, 7): "Topaz Mansion",
+            (3, 3, 4, 8): "Platinum Dragon Mansion",
+            (2, 3, 3, 10): "Full Luna Mansion",
+            (2, 2, 3, 11): "Wide Terra House",
+            (5, 5, 7): "Gold Comet",
+            (3, 7, 7): "Opposition House",
+            (3, 3, 11): "Terra Mansion",
+            (2, 2, 13): "Wide Galaxy",
+            (6, 10): "Silver Luna",
+            (5, 11): "Bronze Terra",
+            (4, 12): "Sol Dragon",
+            (3, 13): "Galaxy House",
+            (2, 2, 5, 9): "Wide Amber",
+            (4, 4, 9): "Diamond Hydra",
+            (7, 9): "Opal",
+            (2, 4, 6, 6): "Full Sin Dragon",
+            (5, 6, 6): "Sin Bronze",
+            (3, 4, 4, 7): "Gold Hydra House",
+            (2, 4, 4, 8): "Full Platinum Hydra",
+            (2, 2, 6, 8): "Wide Quartz",
+            (2, 2, 4, 10): "Wide Luna Dragon",
+            (2, 14): "Full Heaven",
+            (4, 4, 5, 5): "Comet Hydra",
+            (2, 2, 7, 7): "Wide Opposition",
+            (8, 8): "Duality",
+            (3, 3, 6, 6): "Sin Mansion",
+            (3, 5, 5, 5): "Meteor House",
+            (4, 4, 4, 6): "Silver Basilisk",
+            (2, 2, 2, 12): "Tall Sol",
+            (15,): "Cosmos",
+            (3, 3, 3, 9): "Diamond Villa",
+            (5, 6, 7): "Podium",
+            (4, 6, 8): "Quartz Dragon",
+            (3, 7, 8): "Zircon House",
+            (3, 5, 10): "Bronze Luna House",
+            (2, 6, 10): "Full Silver Luna",
+            (3, 4, 11): "Terra Dragon House",
+            (2, 5, 11): "Full Bronze Terra",
+            (2, 4, 12): "Full Sol Dragon",
+            (2, 3, 13): "Full Galaxy House",
+            (7, 10): "Gold Luna",
+            (6, 11): "Silver Terra",
+            (5, 12): "Bronze Sol",
+            (4, 13): "Galaxy Dragon",
+            (3, 14): "Heaven House",
+            (2, 15): "Full Cosmos",
+            (4, 5, 9): "Amber Dragon",
+            (3, 6, 9): "Sapphire House",
+            (2, 7, 9): "Full Opal",
+            (8, 9): "Pearl",
+            (4, 7, 7): "Opposition Dragon",
+            (5, 5, 8): "Platinum Comet",
+            (2, 8, 8): "Full Duality",
+            (4, 4, 10): "Luna Hydra",
+            (3, 3, 12): "Sol Mansion",
+            (2, 2, 14): "Wide Heaven",
+            (16,): "Dimension",
+            (6, 6, 6): "Devil",
+            (8, 10): "Platinum Luna",
+            (7, 11): "Gold Terra",
+            (6, 12): "Silver Sol",
+            (5, 13): "Bronze Galaxy",
+            (4, 14): "Heaven Dragon",
+            (3, 15): "Cosmos House",
+            (2, 16): "Full Dimension",
+            (17,): "Ascendant",
+            (9, 9): "Yin-Yang",
+            (18,): "Zenith",
+        }
+
+        ranks = [names[i] for i in names] #too lazy to do it twice
+
+        hand = names[kinds]
+
+        rank = ranks.index(hand)
+
+        if hand == "High Card": kinds = [1]
+
+        await ctx.send(ctx.author.name + ", Your " + handtype + " Hand is: `" + sid +
+                       "`\n" + "Your hand is valued at `" + hand + "`" +
+                       "\nHand Signature: `" + " ".join([str(i) for i in kinds]) + "`" +
+                       "\nHand Rank: `" + str(len(ranks)-rank) + "`")
+
+        '''
+        runs = [sid[0]]
+
+        for i in sid[1:]:
+            if i != runs[-1][-1]:
+                runs.append(i)
+            else:
+                runs[-1] += i
+
+        lengths = [len(i) for i in runs]
+        counts = [0 for i in range(max(lengths)+1)]
+        for i in lengths:
+            counts[i] += 1
+
+
+        hands = [str(max([int(i) for i in sid])) + "-High"]
+
+        ranks = ["0-High","1-High","2-High","3-High","4-High","5-High","6-High","7-High","8-High","9-High",
+                 "One Pair","Two Pair","Three of a Kind","Three Pair","Straight","Four of a Kind","Four Pair",
+                 "Gay","Full House","Full Belly","Full Dragon","Five of a Kind","Five Pair","Double Gay","House Party","Bronze Dragon",
+                 "Triple Gay","Stomachache","Gastric Bypass","Hella Gay","Infinity Gay"]
+
+
+
+        #hand valuation
+        if len(counts) > 2:
+            nums = ["","One","Two","Three","Four","Five","Six","Seven","Eight","Nine"]
+            if counts[2] > 0: hands.append(nums[counts[2]] + " Pair")
+
+        if len(counts) > 3:
+            nums = ["","Three of a Kind","Full Belly","3-3","4-3","5-3","6-3"]
+            if counts[3] > 0: hands.append(nums[counts[3]])
+
+            if counts[3] == 1 and counts[2] >= 1:
+                hands.append("Full House")
+
+            if counts[3] == 1 and counts[2] >= 2:
+                hands.append("House Party")
+
+        if len(counts) > 4:
+            nums = ["","Four of a Kind","Stomachache","3-4","4-4"]
+            if counts[4] > 0: hands.append(nums[counts[4]])
+
+            if counts[4] == 1 and counts[2] >= 1:
+                hands.append("Full Dragon")
+
+            #if counts[4] == 1 and counts[3] == 1:
+
+        if len(counts) > 4:
+            nums = ["","Five of a Kind","Gastric Bypass","3-5"]
+            if counts[5] > 0: hands.append(nums[counts[5]])
+
+            if counts[5] == 1 and counts[2] >= 1:
+                hands.append("Bronze Dragon")
+
+        hands = sorted(hands,key=lambda x: ranks.index(x))[::-1]
+
+
+        #fuck grammar
+        if hands[0][0].lower() in "aeiou8" and hands[0] != "One Pair":
+            hands[0] = "an " + hands[0]
+        else:
+            hands[0] = "a " + hands[0]
+        '''
 
 
 

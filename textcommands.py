@@ -297,7 +297,11 @@ def randspace(text):
     return "".join([i + (" " * randint(1,7)) for i in text])
 
 
-commands = [mario,elongate,bin,fullwidth,dings,mash,reverse,nato,unbin,scramble,hex,unhex,fraktur,blackboard,script,cthulu,rot,vigenere,randspace,unimash]
+def capitalize(text):
+    return text.title()
+
+
+commands = [mario,elongate,bin,fullwidth,dings,mash,reverse,nato,unbin,scramble,hex,unhex,fraktur,blackboard,script,cthulu,rot,vigenere,randspace,unimash,capitalize]
 commandnames = [str(x).split(" ")[1] for x in commands]
 
 
