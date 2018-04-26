@@ -13,6 +13,11 @@ import aiohttp
 from io import BytesIO
 import warnings
 import itertools
+import time
+import sys
+import os
+import subprocess
+from io import TextIOWrapper, BytesIO
 from collections import Counter
 warnings.simplefilter('error', Image.DecompressionBombWarning)
 
@@ -20,6 +25,31 @@ x, t, z, nu = symbols('x t z nu')
 e = math.e
 pi = math.pi
 
+with open("words.txt","r",encoding="utf-8") as f:
+    words = f.read().splitlines()
+
+
+swords = sorted(words,key=lambda x: len(x),reverse=True)
+
+compressalphabet = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!\"#$%&'()*+,-./:;<=>?@[]^_" \
+                   "`{|}~¡¢£¤¥¦§¨©ª«¬®¯°±²³´µ¶·¸¹º»¼½¾¿ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖ×ØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõö" \
+                   "÷øùúûüýþÿĀāĂăĄąĆćĈĉĊċČčĎďĐđĒēĔĕĖėĘęĚěĜĝĞğĠġĢģĤĥĦħĨĩĪīĬĭĮįİıĲĳĴĵĶķĸĹĺĻļĽľĿŀŁł" \
+                   "ŃńŅņŇňŉŊŋŌōŎŏŐőŒœŔŕŖŗŘřŚśŜŝŞşŠšŢţŤťŦŧŨũŪūŬŭŮůŰűŲųŴŵŶŷŸŹźŻżŽžſƀƁƂƃƄƅƆƇƈƉƊƋƌƍ" \
+                   "ƎƏƐƑƒƓƔƕƖƗƘƙƚƛƜƝƞƟƠơƢƣƤƥƦƧƨƩƪƫƬƭƮƯưƱƲƳƴƵƶƷƸƹƺƻƼƽƾƿǀǁǂǃǄǅǆǇǈǉǊǋǌǍǎǏǐǑǒǓǔǕǖǗ" \
+                   "ǘǙǚǛǜǝǞǟǠǡǢǣǤǥǦǧǨǩǪǫǬǭǮǯǰǱǲǳǴǵǶǷǸǹǺǻǼǽǾǿȀȁȂȃȄȅȆȇȈȉȊȋȌȍȎȏȐȑȒȓȔȕȖȗȘșȚțȜȝȞȟȠȡ" \
+                   "ȢȣȤȥȦȧȨȩȪȫȬȭȮȯȰȱȲȳȴȵȶȷȸȹȺȻȼȽȾȿɀɁɂɃɄɅɆɇɈɉɊɋɌɍɎɏɐɑɒɓɔɕɖɗɘəɚɛɜɝɞɟɠɡɢɣɤɥɦɧɨɩɪɫɬ" \
+                   "ɭɮɯɰɱɲɳɴɵɶɷɸɹɺɻɼɽɾɿʀʁʂʃʄʅʆʇʈʉʊʋʌʍʎʏʐʑʒʓʔʕʖʗʘʙʚʛͰͱͲͳʹ͵Ͷͷͺͻͼͽ;Ϳ΄΅Ά·ΈΉΊΌΎΏΐΑΒ" \
+                   "ΓΔΕΖΗΘΙΚΛΜΝΞΟΠΡΣΤΥΦΧΨΩΪΫάέήίΰαβγδεζηθικλμνξοπρςστυφχψωϊϋόύώϏϐϑϒϓϔϕϖϗϘϙϚϛϜϝ" \
+                   "ϞϟϠϡϢϣϤϥϦϧϨϩϪϫϬϭϮϯϰϱϲϳϴϵ϶ϷϸϹϺϻϼϽϾϿЀЁЂЃЄЅІЇЈЉЊЋЌЍЎЏАБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧ" \
+                   "ШЩЪЫЬЭЮЯабвгдежзийклмнопрстуфхцчшщъыьэюяѐёђѓєѕіїјљњћќѝўџѠѡѢѣѤѥѦѧѨѩѪѫѬѭѮѯѰѱ" \
+                   "ѲѳѴѵѶѷѸѹѺѻѼѽѾѿҀҁ҂ҊҋҌҍҎҏҐґҒғҔҕҖҗҘҙҚқҜҝҞҟҠҡҢңҤҥҦҧҨҩҪҫҬҭҮүҰұҲҳҴҵҶҷҸҹҺһҼҽҾҿӀӁӂ" \
+                   "ӃӄӅӆӇӈӉӊӋӌӍӎӏӐӑӒӓӔӕӖӗӘәӚӛӜӝӞӟӠӡӢӣӤӥӦӧӨөӪӫӬӭӮӯӰӱӲӳӴӵӶӷӸӹӺӻӼӽӾӿԀԁԂԃԄԅԆԇԈԉԊԋԌ" \
+                   "ԍԎԏԐԑԒԓԔԕԖԗԘԙԚԛԜԝԞԟԠԡԢԣԤԥԦԧԨ"
+
+
+wordinit = compressalphabet[340:680]
+wordterm = compressalphabet[:340]
+spaceterm = compressalphabet[680:1020]
 
 class Misc():
     def __init__(self, bot):
@@ -143,9 +173,9 @@ class Misc():
     @commands.command(brief="Grades a person or object on the Glorious Rating Scale.")
     async def scales(self, ctx, *, entity: str):
         if entity.lower() in ["bazbot","bazbot9000","bazbot 9000","bazbot_9000","<@382925349144494080>"]:
-            score = 5
+            score = 4
         elif entity.lower() in ["baz","bazinga","bazinga9000","bazinga 9000","bazinga_9000","my creator","<@137001076284063744>"]:
-            score = 5
+            score = 4
         else:
             score = min(5,self.ratel(entity)//20)
 
@@ -249,7 +279,7 @@ class Misc():
         #await ctx.send("**" + question + "**\n" + links[file]) For those with bad upload speed
 
 
-    #everything below this line (except setup()) was made by bottersnike and hanss
+    #everything regarding the help command was made by bottersnike and hanss
     def format_args(self, cmd):
         params = list(cmd.clean_params.items())
         p_str = ''
@@ -425,6 +455,10 @@ class Misc():
 
         self.ts = False
 
+    @commands.command(brief="Fixes the space time continuum in case something bad happens. **(DO NOT USE TO STOP TIME IN STOPPED TIME)**")
+    async def crazydiamond(self,ctx):
+        self.ts = False
+        await ctx.send("The Space-Time Continuum has been repaired.\n*Disclaimer*\nDo not use this command to stop time within stopped time. It will end badly.")
 
     def subset(self,small,big):
         for item in small:
@@ -858,72 +892,229 @@ class Misc():
                        "\nHand Signature: `" + " ".join([str(i) for i in kinds]) + "`" +
                        "\nHand Rank: `" + str(len(ranks)-rank) + "`")
 
-        '''
-        runs = [sid[0]]
 
-        for i in sid[1:]:
-            if i != runs[-1][-1]:
-                runs.append(i)
+    def bijective(self, n, digits=wordinit):
+        result = []
+        while n > 0:
+            n, mod = divmod(n - 1, len(digits))
+            result += digits[mod]
+        return ''.join(reversed(result))
+
+
+    def modlast(self, s):
+        h = s[-1]
+        return s[:-1] + wordterm[wordinit.index(h)]
+
+    def modspaceterm(self, s):
+        if s.endswith("〙"):
+            return self.modspaceterm(s[:-1]) + "〙"
+        h = s[-1]
+        return s[:-1] + spaceterm[wordterm.index(h)]
+
+    def compressdigit(self, num):
+        return self.modlast(self.bijective(num))
+
+    def compress(self,phrase):
+        if phrase == "": return ""
+        p = phrase.lower()
+        w = p.split(" ")
+        if len(w) != 1:
+            return "".join([self.modspaceterm(self.compress(i)) for i in w])
+        if p in words:
+            return self.compressdigit(words.index(p)+1)
+
+        pairs = [i for i in range(1,len(p)-1)]
+
+        for word in swords:
+            if word == "": continue
+            if word in p:
+                s = p.split(word, 1)
+                return self.compress(s[0]) + self.compressdigit(words.index(word) + 1) + self.compress(s[1])
+
+        '''
+        compressions = []
+        for pair in pairs:
+            q = p[:pair]
+            r = p[pair:]
+
+            if q in words:
+                compressions.append(self.compressdigit(words.index(q)+1) + self.compress(r))
+            if r in words:
+                compressions.append(self.compress(q) + self.compressdigit(words.index(r)+1))
+
+
+        compressions = sorted(compressions,key=lambda x: len(x))
+        if len(compressions) > 0: return compressions[0]
+        '''
+
+
+        ans = []
+
+        if len(p) == 1: return "\\" + self.modlast(self.bijective(ord(p)))
+        for i in p:
+            if i == " ":
+                self.modspaceterm(ans[-1])
+                continue
+            s = self.modlast(self.bijective(ord(i)))
+            ans.append(s)
+        return "〘" + "".join(ans) + "〙"
+
+    def decompress(self,phrase):
+        answer = ""
+        num = []
+        escape_mode = 0
+        for i in phrase:
+            if i == "\\":
+                escape_mode = 1
+                continue
+            if i == "〘":
+                escape_mode = 2
+                continue
+            if i == "〙":
+                escape_mode = 0
+                continue
+            elif i in wordinit:
+                num.append(wordinit.index(i)+1)
+            elif i in wordterm:
+                num.append(wordterm.index(i)+1)
+                value = 0
+                for v in num:
+                    value = (value * 340) + v
+
+                if escape_mode != 0:
+                    answer += chr(value)
+                    if escape_mode == 1: escape_mode = 0
+                else:
+                    answer += words[value-1]
+                num = []
+            elif i in spaceterm:
+                num.append(spaceterm.index(i)+1)
+                value = 0
+                for v in num:
+                    value = (value * 340) + v
+
+                if escape_mode != 0:
+                    answer += chr(value) + " "
+                    if escape_mode == 1: escape_mode = 0
+                else:
+                    answer += words[value-1] + " "
+                num = []
+
+        if num != []:
+            value = 0
+            for v in num:
+                value = (value * 340) + v
+
+            if escape_mode != 0:
+                answer += chr(value)
+                if escape_mode == 1: escape_mode = 0
             else:
-                runs[-1] += i
+                answer += words[value - 1]
 
-        lengths = [len(i) for i in runs]
-        counts = [0 for i in range(max(lengths)+1)]
-        for i in lengths:
-            counts[i] += 1
+        return answer
 
 
-        hands = [str(max([int(i) for i in sid])) + "-High"]
+    def inside(self,s):
+        if s in wordinit: return "wordinit"
+        if s in wordterm: return "wordterm"
+        if s in spaceterm: return "spaceterm"
+        return "none"
 
-        ranks = ["0-High","1-High","2-High","3-High","4-High","5-High","6-High","7-High","8-High","9-High",
-                 "One Pair","Two Pair","Three of a Kind","Three Pair","Straight","Four of a Kind","Four Pair",
-                 "Gay","Full House","Full Belly","Full Dragon","Five of a Kind","Five Pair","Double Gay","House Party","Bronze Dragon",
-                 "Triple Gay","Stomachache","Gastric Bypass","Hella Gay","Infinity Gay"]
+    def broken_decompress(self,phrase):
+        answer = ""
+        for i in phrase:
+            num = []
+            if i in wordinit:
+                num.append(wordinit.index(i))
+            elif i in wordterm:
+                num.append(wordterm.index(i))
+                value = 0
+                for v in reversed(num):
+                    value = (value * 340) + v
+                answer += words[value]
+            elif i in spaceterm:
+                num.append(spaceterm.index(i))
+                value = 0
+                for v in reversed(num):
+                    value = (value * 340) + v
+                answer += words[value] + " "
+        return answer
+
+    @commands.command(name="compress",brief="Compress a phrasse with the Oganesson compression algorithm.")
+    async def _compress(self,ctx,*,phrase):
+        #if len(phrase) > 300:
+        #    return await ctx.send("Uh oh! You friccin moron! That string is too long!")
+        await ctx.send("```\n" + self.compress(phrase) + "\n```")
+
+    @commands.command(name="decompress",brief="Decompress a phrase compressed with the Oganesson compression algorithm.")
+    async def _decompress(self,ctx,*,phrase):
+        await ctx.send(self.decompress(phrase))
+
+    @commands.command(name="brokendecompress",brief="Decompress a phrase compressed with a broken implementation of the Oganesson compression algorithm.")
+    async def _bdecompress(self, ctx, *, phrase):
+        await ctx.send(self.broken_decompress(phrase))
+
+    @commands.command(brief="Decompress a randomly generated compressed string in the Oganesoon compression algorithm.")
+    async def randomdecompress(self,ctx, length : int):
+        if length > 100:
+            return await ctx.send("Uh oh! You friccin moron! That's too large a length!")
+        s = "".join([random.choice(compressalphabet) for i in range(length)])
+        while True:
+            try:
+                return await ctx.send(self.decompress(s))
+            except:
+                s = "".join([random.choice(compressalphabet) for i in range(length)])
+
+    @commands.command(brief="Repeatedly compresses then decompresses a string using the Oganesson compression algorithm.")
+    async def itercompress(self, ctx, length : int, phrase):
+        if length > 10:
+            return await ctx.send("Uh oh! You friccin moron! That's too many compressions!")
+
+        x = phrase
+        for i in range(length):
+            x = self.compress(x)
+        for i in range(length):
+            x = self.decompress(x)
+
+        await ctx.send(x)
 
 
+    @commands.command(brief="Get the nanosecond.")
+    async def nanosecond(self,ctx):
+        t = "%.9f" % time.time()
+        ns = str(t).split(".")[1]
+        await ctx.send("The current nanosecond is " + ns)
 
-        #hand valuation
-        if len(counts) > 2:
-            nums = ["","One","Two","Three","Four","Five","Six","Seven","Eight","Nine"]
-            if counts[2] > 0: hands.append(nums[counts[2]] + " Pair")
+    '''
+    @commands.command(brief="Talk to the DeepTWOW Bots!")
+    @commands.cooldown(1,8,type=commands.BucketType.user)
+    async def deepbots(self,ctx,bot,*words):
+        bots = ["alpha","beta","gamma","delta","epsilon","wau","zeta","eta","theta","iota","kappa","lambda","mu","nu","xi","omicron",
+                "pi","qoppa","rho","sigma","tau","upsilon","phi","chi","psi","omega"]
 
-        if len(counts) > 3:
-            nums = ["","Three of a Kind","Full Belly","3-3","4-3","5-3","6-3"]
-            if counts[3] > 0: hands.append(nums[counts[3]])
+        greek = "αβγδεϝζηθικλμνξοπϙρστυφχψω"
 
-            if counts[3] == 1 and counts[2] >= 1:
-                hands.append("Full House")
-
-            if counts[3] == 1 and counts[2] >= 2:
-                hands.append("House Party")
-
-        if len(counts) > 4:
-            nums = ["","Four of a Kind","Stomachache","3-4","4-4"]
-            if counts[4] > 0: hands.append(nums[counts[4]])
-
-            if counts[4] == 1 and counts[2] >= 1:
-                hands.append("Full Dragon")
-
-            #if counts[4] == 1 and counts[3] == 1:
-
-        if len(counts) > 4:
-            nums = ["","Five of a Kind","Gastric Bypass","3-5"]
-            if counts[5] > 0: hands.append(nums[counts[5]])
-
-            if counts[5] == 1 and counts[2] >= 1:
-                hands.append("Bronze Dragon")
-
-        hands = sorted(hands,key=lambda x: ranks.index(x))[::-1]
+        b = bot.lower()
+        if b not in bots:
+            return await ctx.send("Uh oh! You friccin moron! That's not a bot!")
 
 
-        #fuck grammar
-        if hands[0][0].lower() in "aeiou8" and hands[0] != "One Pair":
-            hands[0] = "an " + hands[0]
-        else:
-            hands[0] = "a " + hands[0]
-        '''
+        bot_id = str(bots.index(b)+1)
+
+        old_stdout = sys.stdout
+        sys.stdout = TextIOWrapper(BytesIO(), sys.stdout.encoding)
 
 
+        bot_file = "../DeepTWOW/rnn_tf Generation/saved/" + bot_id + "/bot.ckpt"
+
+        # do something that writes to stdout or stdout.buffer
+        command = 'python rnn_tf.py --input_file=training_responses_shuffled.txt --ckpt_file="' + bot_file + '" --test_prefix=" " --mode=talk'
+        ans = subprocess.run(command, stdout=subprocess.PIPE).stdout.decode('utf-8')
+
+        ans = ans.split("\n")[1:]
+        ans = [i for i in ans if i != ""]
+        await ctx.send("**Bot " + greek[int(bot_id)-1] + ":** " + random.choice(ans))
+    '''
 
 
 def setup(bot):

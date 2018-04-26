@@ -105,6 +105,14 @@ class Text():
     async def unimash(self, ctx, *, length : int):
         await ctx.send(c.unimash(length))
 
+    @commands.command(brief="Unicode keymashing")
+    async def expand(self, ctx, times: int, *, text : str):
+        await ctx.send(c.expand(text,times))
+
+    @commands.command(name="chr",brief="Get the character of a given codepoint")
+    async def _chr(self,ctx,codepoint : int):
+        await ctx.send(chr(codepoint))
+
     @commands.command(brief="Chain text commands together",aliases=["text"])
     async def chain(self,ctx,*, text):
         try:

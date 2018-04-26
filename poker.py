@@ -47,6 +47,7 @@ class Poker():
         self.startingplayer = -1
         self.actions = 0
         self.playercount = 0
+        self.callcount = 0
 
     def newdeck(self):
         ranks = "AKQJT98765432"
@@ -62,7 +63,9 @@ class Poker():
 
 
     def newround(self,players):
+        self.phase = 0
         self.aliveplayers = players
+        self.calls = [False for i in self.aliveplayers]
         self.startingplayer = (self.startingplayer + 1) % len(self.aliveplayers)
         self.turn = self.startingplayer
         self.pot = 0
@@ -107,17 +110,24 @@ class Poker():
         self.bet = 0
         self.playercount = len(self.aliveplayers)
         self.actions = 0
+        self.callcount = 0
         if self.phase == 3:
             self.endround()
             self.started = False
 
     def handlebet(self,amount):
+        if amount == self.bet:
+            self.callcount += 1
+        else:
+            self.callcount = 1
+
+        m.add_amount(self.players[self.turn].id,-amount)
         self.pot += amount
         self.turn = (self.turn + 1) % len(self.aliveplayers)
         self.actions += 1
         self.bet = amount
-        if self.actions == self.playercount:
-            self.phase += 1
+        if self.callcount == self.playercount:
+            if self.phase != 2: self.phase += 1
             self.handlephase()
 
 
@@ -139,7 +149,7 @@ class Poker():
         self.actions += 1
         self.deadplayers.append(self.aliveplayers[self.turn])
         self.aliveplayers.remove(self.aliveplayers[self.turn])
-
+        del self.calls[self.turn]
 
         if len(self.aliveplayers) == 1:
             self.phase = 3
@@ -165,6 +175,8 @@ class Poker():
 
         for player in self.aliveplayers:
             m.add_amount(player.id,self.pot//len(self.aliveplayers))
+
+
 
 
 class PokerGame():

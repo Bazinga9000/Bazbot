@@ -289,19 +289,40 @@ def vigenere(text,key):
     return newtext
 
 
+import unicodedata
+def unirandom():
+
+    while True:
+        val = randint(1,100000)
+
+        try:
+            char = chr(val)
+            name = unicodedata.name(char)
+
+            if name != "UNKNOWN CHARACTER" and not name.startswith("CJK") and not name.startswith("HANGUL"):
+                return val
+        except:
+            pass
+
 
 def unimash(length):
-    return "".join([chr(randint(1,100000)) for i in range(int(length))])
+    return "".join([chr(unirandom()) for i in range(int(length))])
 
 def randspace(text):
     return "".join([i + (" " * randint(1,7)) for i in text])
 
-
 def capitalize(text):
     return text.title()
 
+def expand(text,times):
+    if len(text) < 2: return times * text
+    ans = text + "\n"
+    for i in range(times):
+        ans += (" " * (i+1)).join([j for j in text]) + "\n"
+    return ans
 
-commands = [mario,elongate,bin,fullwidth,dings,mash,reverse,nato,unbin,scramble,hex,unhex,fraktur,blackboard,script,cthulu,rot,vigenere,randspace,unimash,capitalize]
+commands = [mario,elongate,bin,fullwidth,dings,mash,reverse,nato,unbin,scramble,hex,unhex,fraktur,blackboard,script,
+            cthulu,rot,vigenere,randspace,unimash,capitalize,expand]
 commandnames = [str(x).split(" ")[1] for x in commands]
 
 

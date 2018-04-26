@@ -191,6 +191,8 @@ class Stem():
         else:
             cmap = colormap
 
+        if p > 5000:
+            return await ctx.send("Uh oh! You friccin moron! That's too many iterations!")
 
         try:
             md.render(cx, cy, r, p, cmap)
@@ -556,6 +558,12 @@ class Stem():
 
                     stack.append(math.radians(a))
 
+                if token == "rad":
+                    a = stack.pop()
+                    self.ban("rad", a, (complex))
+
+                    stack.append(math.degrees(a))
+
                 if token == "asin":
                     stack.append(math.asin(stack.pop()))
 
@@ -566,13 +574,13 @@ class Stem():
                     stack.append(math.asin(stack.pop()))
 
                 if token == "acsc":
-                    stack.append(1 / math.asin(stack.pop()))
+                    stack.append(math.asin(1 / stack.pop()))
 
                 if token == "asec":
-                    stack.append(1 / math.acos(stack.pop()))
+                    stack.append(math.acos(1 / stack.pop()))
 
                 if token == "acot":
-                    stack.append(1 / math.atan(stack.pop()))
+                    stack.append(math.atan(1 / stack.pop()))
 
                 if token == "sinh":
                     stack.append(math.sinh(stack.pop()))
@@ -602,13 +610,13 @@ class Stem():
                     stack.append(math.atanh(stack.pop()))
 
                 if token == "acsch":
-                    stack.append(1 / math.asinh(stack.pop()))
+                    stack.append(math.asinh(1 / stack.pop()))
 
                 if token == "asech":
-                    stack.append(1 / math.acosh(stack.pop()))
+                    stack.append(math.acosh(1 / stack.pop()))
 
                 if token == "acoth":
-                    stack.append(1 / math.atanh(stack.pop()))
+                    stack.append(math.atanh(1 / stack.pop()))
 
                 if token == "swap":
                     a = stack.pop()
@@ -764,7 +772,8 @@ class Stem():
             ["csc",   9, True],  #cosecant
             ["sec",   9, True],  #secant
             ["cot",   9, True],  #cotangent
-            ["deg",   9, True],  #convert to degrees
+            ["deg",   9, True],  #convert to radians
+            ["rad",   9, True],  #convert to degrees
             #Inverse Trig
             ["asin",  9, True],  # sine
             ["acos",  9, True],  # cosine

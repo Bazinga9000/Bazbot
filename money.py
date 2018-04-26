@@ -117,7 +117,7 @@ class Money():
         text += "You are #" + str(richlist.index((ctx.author.id,amt)) + 1) + "/" + str(len(richlist)) + " (∰" + str(amt) + ")"
         await ctx.send(text)
 
-    '''
+
     @commands.command(brief="Add or remove money.")
     async def reset(self,ctx, *, verif):
         if ctx.author.id != 137001076284063744:
@@ -128,7 +128,7 @@ class Money():
                 money[person] = 100
 
         dump_money()
-    '''
+
 
 def setup(bot):
     bot.add_cog(Money(bot))

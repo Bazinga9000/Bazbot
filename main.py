@@ -24,7 +24,7 @@ Get rekt milo.
 '''
 
 # this specifies what extensions to load when the bot starts up
-startup_extensions = ["textmanipulation","stem","misc","tags","boardgame","uno","dos","money","poker"]
+startup_extensions = ["textmanipulation","stem","misc","tags","boardgame","uno","dos","money","poker","cc"]
 
 bot = commands.Bot(command_prefix='b9!', description=description)
 
@@ -107,8 +107,8 @@ async def load(ctx, extension_name : str):
 @bot.command()
 @commands.check(owner)
 async def speak(ctx, channel : int, *, message : str):
-	ch = bot.get_channel(channel)
-	await ch.send(message)
+    ch = bot.get_channel(channel)
+    await ch.send(message)
 		
 @bot.command()
 @commands.check(owner)

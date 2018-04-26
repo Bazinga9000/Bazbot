@@ -6,3 +6,4 @@ __pycache__/*
 secretimages/*
 backups/*
 output.png
+cc.py

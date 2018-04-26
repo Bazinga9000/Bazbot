@@ -317,7 +317,7 @@ class Tags():
 
 
     @commands.group(brief="Tag System",invoke_without_command=True)
-    @commands.cooldown(1,0.5,type=commands.BucketType.user)
+    @commands.cooldown(1,4,type=commands.BucketType.user)
     async def tag(self,ctx, name : str):
 
         if ctx.guild is None: 
