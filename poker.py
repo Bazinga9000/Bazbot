@@ -127,13 +127,13 @@ class Poker():
         self.actions += 1
         self.bet = amount
         if self.callcount == self.playercount:
-            if self.phase != 2: self.phase += 1
+            self.phase += 1
             self.handlephase()
 
 
     def handlediscard(self,cards):
         player = self.aliveplayers[self.turn]
-        if cards != 0:
+        if cards != "0":
             for card in set(cards):
                 player.swap(int(card) - 1)
 
@@ -163,13 +163,12 @@ class Poker():
             self.handlephase()
 
     def endround(self):
-        self.aliveplayers = sorted(self.aliveplayers, key=lambda x: p.rank(p.convert(x.hand)))
+        self.aliveplayers = sorted(self.aliveplayers, key=lambda x: p.convert(x.hand))
         copy = self.aliveplayers[:]
-        ranks = [p.rank(p.convert(i.hand)) for i in copy]
-        maxrank = ranks[0]
+        max_hand = p.convert(self.aliveplayers[0].hand)
 
         for player in copy:
-            if p.rank(p.convert(player.hand)) != maxrank:
+            if p.convert(player.hand) != max_hand:
                 self.aliveplayers.remove(player)
                 self.deadplayers.append(player)
 

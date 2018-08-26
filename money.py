@@ -118,7 +118,7 @@ class Money():
         await ctx.send(text)
 
 
-    @commands.command(brief="Add or remove money.")
+    @commands.command(brief="Reset everyone.")
     async def reset(self,ctx, *, verif):
         if ctx.author.id != 137001076284063744:
             return await ctx.send("You can't do that!")

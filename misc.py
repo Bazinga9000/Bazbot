@@ -9,6 +9,7 @@ import asyncio
 import random
 import pickle
 from PIL import Image
+from PIL.Image import core as _imaging
 import aiohttp
 from io import BytesIO
 import warnings
@@ -17,8 +18,13 @@ import time
 import sys
 import os
 import subprocess
+import urllib.request
+import urllib.parse
 from io import TextIOWrapper, BytesIO
+from selenium import webdriver
+import re
 from collections import Counter
+
 warnings.simplefilter('error', Image.DecompressionBombWarning)
 
 x, t, z, nu = symbols('x t z nu')
@@ -27,7 +33,6 @@ pi = math.pi
 
 with open("words.txt","r",encoding="utf-8") as f:
     words = f.read().splitlines()
-
 
 swords = sorted(words,key=lambda x: len(x),reverse=True)
 
@@ -55,7 +60,7 @@ class Misc():
     def __init__(self, bot):
         self.bot = bot
         self.ratel = lambda x: int(hashlib.sha256(x.lower().encode('utf-8')).hexdigest(),16) % 101
-        self.ts = False
+        self.ts = {}
 
     def crop(self, im, new_width, new_height):
         width, height = im.size   # Get dimensions
@@ -72,7 +77,10 @@ class Misc():
     @commands.cooldown(1,10,type=commands.BucketType.user)
     async def coolguy(self, ctx, *id):
         if len(id) == 0:
-            url = ctx.message.attachments[0].url
+            try:
+                url = ctx.message.attachments[0].url
+            except:
+                return await ctx.send("Uh oh! You friccin moron! You need either an image or a url!")
         else:
             url = id[0]
             try:
@@ -88,10 +96,11 @@ class Misc():
 
         url = url.replace(".webp",".png").replace(".webm",".png")
 
-        if ".png" not in url and ".jpg" not in url and ".gif" not in url:
+        urll = url.lower()
+        if ".png" not in urll and ".jpg" not in urll and ".gif" not in urll:
             return await ctx.send("Uh oh! You friccin moron! That's not an image!")
 
-        with aiohttp.ClientSession() as session:
+        async with aiohttp.ClientSession() as session:
             async with session.get(url) as resp:
                 response = await resp.read()
 
@@ -124,6 +133,78 @@ class Misc():
 
         out.paste(image, (0, 0), anticoolguy)
         out.paste(coolguy, (0, 0), coolguy)
+        out.save("output.png")
+
+        await ctx.send(file=discord.File(open("output.png", mode="rb")))
+
+    @commands.command(brief="*ゴゴゴゴゴゴゴ*")
+    @commands.cooldown(1, 10, type=commands.BucketType.user)
+    async def menacing(self, ctx, *id):
+        if len(id) == 0:
+            url = ctx.message.attachments[0].url
+        else:
+            url = id[0]
+            try:
+                url = ctx.message.mentions[0].avatar_url
+                if url == "": url = ctx.messages.mentions[0].default_avatar_url
+            except:
+                try:
+                    user = self.bot.get_user(int(id[0]))
+                    url = user.avatar_url
+                    if url == "": url = user.default_avatar_url
+                except:
+                    url = id[0]
+
+        url = url.replace(".webp", ".png").replace(".webm", ".png")
+        urll = url.lower()
+
+        if ".png" not in urll and ".jpg" not in urll and ".gif" not in urll:
+            return await ctx.send("Uh oh! You friccin moron! That's not an image!")
+
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url) as resp:
+                response = await resp.read()
+
+        try:
+            image = Image.open(BytesIO(response))
+        except Image.DecompressionBombWarning:
+            return await ctx.send("Uh oh! You friccin moron! That image is too big! Try a smaller one.")
+        except:
+            return await ctx.send("Uh oh! You friccin moron! That's not an image!")
+
+        s = image.size
+
+        ratio = s[1] / s[0]
+
+        if abs(ratio - 1) < 0.1:
+            menacing = Image.open("menacing/square.png").convert("RGBA")
+        elif ratio > 1:
+            menacing = Image.open("menacing/tall.png").convert("RGBA")
+        elif ratio < 1:
+            menacing = Image.open("menacing/wide.png").convert("RGBA")
+
+        menacing = menacing.resize((s[0],s[1]))
+
+
+
+        '''
+        if s[0] > s[1]:
+            ns = [int(411 * ratio), 411]
+        else:
+            ns = [411, int(411 * ratio)]
+
+        image = image.resize(ns, Image.BILINEAR)
+        image = self.crop(image, 411, 411)
+
+        if image.size != [411, 411]:
+            image = image.resize((411, 411), Image.BILINEAR)
+        '''
+
+        out = Image.new("RGBA", [s[0],s[1]], (0, 0, 0, 0))
+
+
+        out.paste(image, (0, 0))
+        out.paste(menacing, (0, 0), menacing)
         out.save("output.png")
 
         await ctx.send(file=discord.File(open("output.png", mode="rb")))
@@ -394,10 +475,17 @@ class Misc():
 
     @commands.command(brief="The World! Stop time!")
     async def theworld(self,ctx):
+        try:
+            x = self.ts[ctx.guild.id]
+        except:
+            self.ts[ctx.guild.id] = False
+
         if ctx.guild is None:
             return await ctx.send("You can't use that ability here...")
 
-        if self.ts:
+
+
+        if self.ts[ctx.guild.id]:
             return await ctx.send("Time is already stopped...")
 
         perms = [x for x in iter(ctx.channel.permissions_for(ctx.guild.me))]
@@ -407,7 +495,7 @@ class Misc():
 
         roles = []
 
-        valid = ["mod","admin","owner","staff","dio"]
+        valid = ["mod","admin","owner","staff","dio","administrator","moderator"]
 
         for role in ctx.author.roles:
             if role.name == "@everyone":
@@ -419,7 +507,7 @@ class Misc():
         if not any(x in valid for x in roles) and ctx.author != ctx.guild.owner:
             return await ctx.send("You are not powerful enough to use this ability...")
 
-        self.ts = True
+        self.ts[ctx.guild.id] = True
 
         ch = ctx.channel
 
@@ -453,11 +541,19 @@ class Misc():
 
         await ctx.send("*Time has resumed.*")
 
-        self.ts = False
+        self.ts[ctx.guild.id] = False
 
     @commands.command(brief="Fixes the space time continuum in case something bad happens. **(DO NOT USE TO STOP TIME IN STOPPED TIME)**")
     async def crazydiamond(self,ctx):
-        self.ts = False
+        valid = ["mod", "admin", "owner", "staff", "josuke", "administrator", "moderator"]
+        roles = []
+        for role in ctx.author.roles:
+            roles.append(role.name.lower())
+
+        if not any(x in valid for x in roles) and ctx.author != ctx.guild.owner:
+            return await ctx.send("You are not powerful enough to use this ability...")
+
+        self.ts[ctx.guild.id] = False
         await ctx.send("The Space-Time Continuum has been repaired.\n*Disclaimer*\nDo not use this command to stop time within stopped time. It will end badly.")
 
     def subset(self,small,big):
@@ -1065,11 +1161,14 @@ class Misc():
             except:
                 s = "".join([random.choice(compressalphabet) for i in range(length)])
 
+    '''
     @commands.command(brief="Repeatedly compresses then decompresses a string using the Oganesson compression algorithm.")
     async def itercompress(self, ctx, length : int, phrase):
         if length > 10:
             return await ctx.send("Uh oh! You friccin moron! That's too many compressions!")
-
+        
+        
+        
         x = phrase
         for i in range(length):
             x = self.compress(x)
@@ -1077,13 +1176,62 @@ class Misc():
             x = self.decompress(x)
 
         await ctx.send(x)
-
+    '''
 
     @commands.command(brief="Get the nanosecond.")
     async def nanosecond(self,ctx):
-        t = "%.9f" % time.time()
-        ns = str(t).split(".")[1]
-        await ctx.send("The current nanosecond is " + ns)
+        t = str(time.time_ns()%(10**9))
+        await ctx.send("The current nanosecond is " + t)
+
+    @commands.cooldown(1,8,type=commands.BucketType.user)
+    @commands.command(aliases=["arrow"],brief="Use the power of The Arrow to generate a stand with a given name.")
+    async def stand(self,ctx,*,name):
+        power = random.choice("ABCDE")
+        speed = random.choice("ABCDE")
+        durab = random.choice("ABCDE")
+        preci = random.choice("ABCDE")
+        poten = random.choice("ABCDE")
+
+
+
+
+
+        '''
+        url = "http://allow-any-origin.appspot.com/http://powerlisting.wikia.com/wiki/Special:Random"
+
+
+        html = urllib.request.urlopen(url)
+        htmls = [i.decode() for i in html.readlines()]
+        html.close()
+
+
+        htmls = "".join(htmls)
+        abilityv = htmls.index("<title>")
+        ability = htmls[abilityv+7:].split("|")[0][:-1]
+
+        #ability = "be patient"
+        '''
+        driver = webdriver.PhantomJS()
+        driver.get("http://powerlisting.wikia.com/wiki/Special:Random")
+        ability = driver.title.split("|")[0][:-1]
+        src = driver.page_source
+        desc = src[src.index("Capabilities") + 39:].split("</p>")[0][3:]
+
+
+        ans = ""
+        ans += "```\n"
+        ans += "Stand Name: " + name + "\n"
+        ans += "\n"
+        ans += "Power: " + power + "\n"
+        ans += "Speed: " + speed + "\n"
+        ans += "Durability: " + durab + "\n"
+        ans += "Precision: " + preci + "\n"
+        ans += "Potential: " + poten + "\n"
+        ans += "\n"
+        ans += "Ability: " + ability + "\n"
+        ans += "Description: " + desc + "\n"
+        ans += "```"
+        await ctx.send(re.sub('<[^<]+?>', '', ans).replace("&nbsp;"," "))
 
     '''
     @commands.command(brief="Talk to the DeepTWOW Bots!")
@@ -1115,6 +1263,7 @@ class Misc():
         ans = [i for i in ans if i != ""]
         await ctx.send("**Bot " + greek[int(bot_id)-1] + ":** " + random.choice(ans))
     '''
+
 
 
 def setup(bot):

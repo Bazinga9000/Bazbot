@@ -7,3 +7,5 @@ secretimages/*
 backups/*
 output.png
 cc.py
+ccimages/*
+*.log

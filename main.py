@@ -4,18 +4,12 @@ import discord
 from io import TextIOWrapper, BytesIO
 import sys,traceback
 
-#for eval() and exec()
-from random import *
-from sympy import *
-import math
 
-x, t, z, nu = symbols('x t z nu')
-e = math.e
-pi = math.pi
 
 
 owner = lambda ctx: ctx.author.id == 137001076284063744
 tracebackt = True
+frozen = False
 
 
 description = '''Bazinga_9000's Fancy Robot
@@ -24,19 +18,38 @@ Get rekt milo.
 '''
 
 # this specifies what extensions to load when the bot starts up
-startup_extensions = ["textmanipulation","stem","misc","tags","boardgame","uno","dos","money","poker","cc"]
+startup_extensions = ["textmanipulation","stem","misc","tags","boardgame","uno","dos","money","poker","cc","deeptwow"]
 
 bot = commands.Bot(command_prefix='b9!', description=description)
 
 
+class bcolors:
+    HEADER = '\033[95m'
+    OKBLUE = '\033[94m'
+    OKGREEN = '\033[92m'
+    WARNING = '\033[93m'
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
+
+
 @bot.event
 async def on_ready():
-    print('Logged in as')
-    print(bot.user.name)
-    print(bot.user.id)
-    print('------')
+    print()
+    print(bcolors.OKGREEN + "Bazbot is Online!" + bcolors.ENDC)
+    print(bcolors.OKBLUE + "User: " + bot.user.name + bcolors.ENDC)
+    print(bcolors.OKBLUE + "ID: " + str(bot.user.id) + bcolors.ENDC)
 
 
+@bot.event
+async def on_message(message):
+    global frozen
+    if not message.author.bot and message.content.startswith("b9!"):
+        if not frozen or message.author.id == 137001076284063744:
+            await bot.process_commands(message)
+        else:
+            await message.channel.send("Bazbot is frozen and so will not respond to commands at this time.")
 
 
 def gettraceback(exception):
@@ -61,6 +74,9 @@ async def on_command_error(ctx, error):
         e = ' '.join(error.args)
         error_data = rgx.findall('Converting to \"(.*)\" failed for parameter \"(.*)\"\.', e)
         if not error_data:
+            print(bcolors.FAIL + "The command " + ctx.message.content)
+            print("(Issued by " + ctx.author.name + " in " + gname + ")")
+            print("caused " + str(error)[29:] + bcolors.ENDC)
             await ctx.send('Error: {}'.format(' '.join(error.args)))
             gettraceback(error)
         else:
@@ -74,9 +90,19 @@ async def on_command_error(ctx, error):
             elif "FORBIDDEN" in so:
                 await ctx.send("Uh oh! I don't have permissions for this!")
         else:
+            if ctx.guild is None:
+                gname = " a DM"
+            else:
+                gname = ctx.guild.name
+            print(bcolors.FAIL + "The command " + ctx.message.content)
+            print("(Issued by " + ctx.author.name + " in " + gname + ")")
+            print("caused " + str(error)[29:] + bcolors.ENDC)
             await ctx.send("Error: {}".format(' '.join(error.args)))
             gettraceback(error)
     else:
+        print(bcolors.FAIL + "The command " + ctx.message.content)
+        print("(Issued by " + ctx.author.name + " in " + gname + ")")
+        print("caused " + str(error)[29:] + bcolors.ENDC)
         await ctx.send("Error: {}".format(' '.join(error.args)))
         gettraceback(error)
 
@@ -123,6 +149,14 @@ async def unload(ctx, extension_name : str):
 		
 	
 
+@bot.command(brief="Freezes the bot")
+@commands.check(owner)
+async def freeze(ctx):
+    global frozen
+    frozen = not frozen
+    if frozen: return await ctx.send("Bazbot is now frozen!")
+    return await ctx.send("Bazbot is no longer frozen!")
+
 @bot.command(brief="Reload all the commands")
 @commands.check(owner)
 async def reload(ctx):
@@ -137,9 +171,20 @@ async def reload(ctx):
             loaded += 1
         except Exception as e:
             exc = '{}: {}'.format(type(e).__name__, e)
-            print('Failed to load extension {}\n{}'.format(extension, exc))
+            print(bcolors.FAIL + 'Failed to load extension {}'.format(extension) + bcolors.ENDC + '\n{}'.format(exc))
 
     await ctx.send(str(loaded) + "/" + str(excount) + " Extensions Reloaded.")
+
+
+#for eval() and exec()
+from random import *
+from sympy import *
+import math
+
+x, t, z, nu = symbols('x t z nu')
+e = math.e
+pi = math.pi
+
 
 @bot.command(name="eval",brief="evaluate some code")
 @commands.check(owner)
@@ -213,7 +258,7 @@ if __name__ == "__main__":
             bot.load_extension(extension)
         except Exception as e:
             exc = '{}: {}'.format(type(e).__name__, e)
-            print('Failed to load extension {}\n{}'.format(extension, exc))
+            print(bcolors.FAIL + 'Failed to load extension {}'.format(extension) + bcolors.ENDC + '\n{}'.format(exc))
 
 with open("token.txt") as file:
     token = file.read()
