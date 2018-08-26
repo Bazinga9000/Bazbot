@@ -1,7 +1,5 @@
 import discord
 from discord.ext import commands
-#import Botzinga_9000.FastMandelbrot as md
-import FastMandelbrot as md
 from random import *
 from sympy import *
 from sympy import core
@@ -157,6 +155,9 @@ class BadType(Exception):
 class Stem():
     def __init__(self,bot):
         self.bot = bot
+
+
+'''
         self.cmaps = ['Accent', 'Accent_r', 'Blues', 'Blues_r', 'BrBG', 'BrBG_r', 'BuGn', 'BuGn_r', 'BuPu', 'BuPu_r', 'CMRmap',
          'CMRmap_r', 'Dark2', 'Dark2_r', 'GnBu', 'GnBu_r', 'Greens', 'Greens_r', 'Greys', 'Greys_r', 'OrRd', 'OrRd_r',
          'Oranges', 'Oranges_r', 'PRGn', 'PRGn_r', 'Paired', 'Paired_r', 'Pastel1', 'Pastel1_r', 'Pastel2', 'Pastel2_r',
@@ -201,6 +202,7 @@ class Stem():
             return
 
         await ctx.send(file=discord.File(open("output.png",mode="rb"),filename="output.png"))
+'''
 
     @commands.command(brief="Factors numbers")
     async def factor(self, ctx, n : int):
