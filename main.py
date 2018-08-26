@@ -4,6 +4,7 @@ import discord
 from io import TextIOWrapper, BytesIO
 import sys,traceback
 import subprocess
+import asyncio
 
 
 
@@ -157,11 +158,9 @@ async def freeze(ctx):
     if frozen: return await ctx.send("Bazbot is now frozen!")
     return await ctx.send("Bazbot is no longer frozen!")
 
-@bot.command(brief="Reload all the commands")
-@commands.check(owner)
-async def reload(ctx):
 
 
+async def reload_libs(ctx):
     excount = len(startup_extensions)
     loaded = 0
     for extension in startup_extensions:
@@ -174,6 +173,14 @@ async def reload(ctx):
             print(bcolors.FAIL + 'Failed to load extension {}'.format(extension) + bcolors.ENDC + '\n{}'.format(exc))
 
     await ctx.send(str(loaded) + "/" + str(excount) + " Extensions Reloaded.")
+
+
+
+
+@bot.command(brief="Reload all the commands")
+@commands.check(owner)
+async def reload(ctx):
+    await reload_libs(ctx)
 
 
 #Stolen from HTBote
@@ -191,7 +198,9 @@ async def update(ctx):
 
     await ctx.author.send('`Git` response: ```diff\n{}\n{}```'.format(stdout, stderr))
 
-    await reload(ctx)
+    await reload_libs(ctx)
+
+    
 #for eval() and exec()
 from random import *
 from sympy import *
