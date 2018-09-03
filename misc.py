@@ -1218,7 +1218,6 @@ class Misc():
         ability = spower[0]
         desc = spower[1]
 
-        print(ability,desc)
 
         ans = ""
         ans += "```\n"
