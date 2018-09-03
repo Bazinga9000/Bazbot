@@ -21,7 +21,17 @@ Get rekt milo.
 # this specifies what extensions to load when the bot starts up
 startup_extensions = ["textmanipulation","stem","misc","tags","boardgame","uno","dos","money","poker","cc"]
 
-bot = commands.Bot(command_prefix='b9!', description=description)
+prefix = "b9!"
+
+import sys
+if len(sys.argv) > 1:
+    if sys.argv[1] == "beta":
+        print("\033[93mBeta Prefix Enabled\033[0m")
+        prefix = "b9b!"
+
+bot = commands.Bot(command_prefix=prefix, description=description)
+
+
 
 
 class bcolors:
@@ -41,12 +51,12 @@ async def on_ready():
     print(bcolors.OKGREEN + "Bazbot is Online!" + bcolors.ENDC)
     print(bcolors.OKBLUE + "User: " + bot.user.name + bcolors.ENDC)
     print(bcolors.OKBLUE + "ID: " + str(bot.user.id) + bcolors.ENDC)
-
+    print(bcolors.OKBLUE + "Prefix: " + bot.command_prefix + bcolors.ENDC)
 
 @bot.event
 async def on_message(message):
     global frozen
-    if not message.author.bot and message.content.startswith("b9!"):
+    if not message.author.bot and message.content.startswith(prefix):
         if not frozen or message.author.id == 137001076284063744:
             await bot.process_commands(message)
         else:
@@ -285,6 +295,8 @@ if __name__ == "__main__":
             exc = '{}: {}'.format(type(e).__name__, e)
             print(bcolors.FAIL + 'Failed to load extension {}'.format(extension) + bcolors.ENDC + '\n{}'.format(exc))
 
+
 with open("token.txt") as file:
-    token = file.read()
+    token = file.read().replace("\n","")
+
 bot.run(token)

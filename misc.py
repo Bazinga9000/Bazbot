@@ -7,23 +7,14 @@ import dice
 import glob
 import asyncio
 import random
-import pickle
+import json
 from PIL import Image
-from PIL.Image import core as _imaging
 import aiohttp
-from io import BytesIO
 import warnings
 import itertools
 import time
-import sys
-import os
-import subprocess
-import urllib.request
-import urllib.parse
 from io import TextIOWrapper, BytesIO
-from selenium import webdriver
 import re
-from collections import Counter
 
 warnings.simplefilter('error', Image.DecompressionBombWarning)
 
@@ -35,6 +26,10 @@ with open("words.txt","r",encoding="utf-8") as f:
     words = f.read().splitlines()
 
 swords = sorted(words,key=lambda x: len(x),reverse=True)
+
+with open("standopowa.json","r") as f:
+    stand_abilities = json.load(f)
+
 
 compressalphabet = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!\"#$%&'()*+,-./:;<=>?@[]^_" \
                    "`{|}~¡¢£¤¥¦§¨©ª«¬®¯°±²³´µ¶·¸¹º»¼½¾¿ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖ×ØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõö" \
@@ -1183,7 +1178,7 @@ class Misc():
         t = str(time.time_ns()%(10**9))
         await ctx.send("The current nanosecond is " + t)
 
-    @commands.cooldown(1,8,type=commands.BucketType.user)
+    @commands.cooldown(1,2,type=commands.BucketType.user)
     @commands.command(aliases=["arrow"],brief="Use the power of The Arrow to generate a stand with a given name.")
     async def stand(self,ctx,*,name):
         power = random.choice("ABCDE")
@@ -1211,12 +1206,19 @@ class Misc():
 
         #ability = "be patient"
         '''
+        '''
         driver = webdriver.PhantomJS()
         driver.get("http://powerlisting.wikia.com/wiki/Special:Random")
         ability = driver.title.split("|")[0][:-1]
         src = driver.page_source
         desc = src[src.index("Capabilities") + 39:].split("</p>")[0][3:]
+        '''
 
+        spower = random.choice(stand_abilities)
+        ability = spower[0]
+        desc = spower[1]
+
+        print(ability,desc)
 
         ans = ""
         ans += "```\n"
