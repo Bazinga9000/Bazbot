@@ -28,7 +28,6 @@ swords = sorted(words,key=lambda x: len(x),reverse=True)
 
 with open("standopowa.txt","r") as f:
     stand_abilities = f.read().splitlines()
-stand_abilities = [i.split("\t") for i in stand_abilities]
 
 
 compressalphabet = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!\"#$%&'()*+,-./:;<=>?@[]^_" \
@@ -1183,12 +1182,13 @@ class Misc():
     async def stand(self,ctx,*,name):
         power = random.choice("ABCDE")
         speed = random.choice("ABCDE")
+        srange = random.choice("ABCDE")
         durab = random.choice("ABCDE")
         preci = random.choice("ABCDE")
         poten = random.choice("ABCDE")
 
 
-
+        map = lambda x: "EDCBA".index(x)
 
 
         '''
@@ -1214,12 +1214,18 @@ class Misc():
         desc = src[src.index("Capabilities") + 39:].split("</p>")[0][3:]
         '''
 
-        print(len(stand_abilities))
-        spower = random.choice(stand_abilities)
-        ability = spower[0]
-        desc = spower[1]
+        ability = random.choice(stand_abilities)
 
+        stand_score = sum(map(i) for i in (power,speed,srange,durab,preci,poten))
 
+        color = 0xff0000
+        if stand_score > 6: color = 0xff9900
+        if stand_score > 12: color = 0xffff00
+        if stand_score > 17: color = 0x00ff00
+        if stand_score > 20: color = 0x0000ff
+        if stand_score == 24: color = 0xff00ff
+
+        '''
         ans = ""
         ans += "```\n"
         ans += "Stand Name: " + name + "\n"
@@ -1231,9 +1237,19 @@ class Misc():
         ans += "Potential: " + poten + "\n"
         ans += "\n"
         ans += "Ability: " + ability + "\n"
-        ans += "Description: " + desc + "\n"
+        #ans += "Description: " + desc + "\n"
         ans += "```"
-        await ctx.send(re.sub('<[^<]+?>', '', ans).replace("&nbsp;"," "))
+        '''
+        embed = discord.Embed(title="Stand Name: " + name, color=color)
+        embed.add_field(name="Power", value=power, inline=True)
+        embed.add_field(name="Speed", value=speed, inline=True)
+        embed.add_field(name="Range", value=srange, inline=True)
+        embed.add_field(name="Durability", value=durab, inline=True)
+        embed.add_field(name="Precision", value=preci, inline=True)
+        embed.add_field(name="Potential", value=poten, inline=True)
+        embed.add_field(name="Ability", value=ability, inline=True)
+        ans = "**Description** http://powerlisting.wikia.com/wiki/" + ability.replace(" ","_")
+        await ctx.send(ans,embed=embed)
 
     '''
     @commands.command(brief="Talk to the DeepTWOW Bots!")
