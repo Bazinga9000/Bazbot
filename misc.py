@@ -7,7 +7,6 @@ import dice
 import glob
 import asyncio
 import random
-import json
 from PIL import Image
 import aiohttp
 import warnings
@@ -27,8 +26,9 @@ with open("words.txt","r",encoding="utf-8") as f:
 
 swords = sorted(words,key=lambda x: len(x),reverse=True)
 
-with open("standopowa.json","r") as f:
-    stand_abilities = json.load(f)
+with open("standopowa.txt","r") as f:
+    stand_abilities = f.read().splitlines()
+stand_abilities = [i.split("\t") for i in stand_abilities]
 
 
 compressalphabet = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!\"#$%&'()*+,-./:;<=>?@[]^_" \
@@ -1214,6 +1214,7 @@ class Misc():
         desc = src[src.index("Capabilities") + 39:].split("</p>")[0][3:]
         '''
 
+        print(len(stand_abilities))
         spower = random.choice(stand_abilities)
         ability = spower[0]
         desc = spower[1]
