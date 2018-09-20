@@ -12,6 +12,7 @@ import aiohttp
 import warnings
 import itertools
 import time
+import datetime
 from io import TextIOWrapper, BytesIO
 import re
 
@@ -21,10 +22,6 @@ x, t, z, nu = symbols('x t z nu')
 e = math.e
 pi = math.pi
 
-with open("words.txt","r",encoding="utf-8") as f:
-    words = f.read().splitlines()
-
-swords = sorted(words,key=lambda x: len(x),reverse=True)
 
 with open("standopowa.txt","r") as f:
     stand_abilities = f.read().splitlines()
@@ -983,195 +980,6 @@ class Misc():
                        "\nHand Rank: `" + str(len(ranks)-rank) + "`")
 
 
-    def bijective(self, n, digits=wordinit):
-        result = []
-        while n > 0:
-            n, mod = divmod(n - 1, len(digits))
-            result += digits[mod]
-        return ''.join(reversed(result))
-
-
-    def modlast(self, s):
-        h = s[-1]
-        return s[:-1] + wordterm[wordinit.index(h)]
-
-    def modspaceterm(self, s):
-        if s.endswith("〙"):
-            return self.modspaceterm(s[:-1]) + "〙"
-        h = s[-1]
-        return s[:-1] + spaceterm[wordterm.index(h)]
-
-    def compressdigit(self, num):
-        return self.modlast(self.bijective(num))
-
-    def compress(self,phrase):
-        if phrase == "": return ""
-        p = phrase.lower()
-        w = p.split(" ")
-        if len(w) != 1:
-            return "".join([self.modspaceterm(self.compress(i)) for i in w])
-        if p in words:
-            return self.compressdigit(words.index(p)+1)
-
-        pairs = [i for i in range(1,len(p)-1)]
-
-        for word in swords:
-            if word == "": continue
-            if word in p:
-                s = p.split(word, 1)
-                return self.compress(s[0]) + self.compressdigit(words.index(word) + 1) + self.compress(s[1])
-
-        '''
-        compressions = []
-        for pair in pairs:
-            q = p[:pair]
-            r = p[pair:]
-
-            if q in words:
-                compressions.append(self.compressdigit(words.index(q)+1) + self.compress(r))
-            if r in words:
-                compressions.append(self.compress(q) + self.compressdigit(words.index(r)+1))
-
-
-        compressions = sorted(compressions,key=lambda x: len(x))
-        if len(compressions) > 0: return compressions[0]
-        '''
-
-
-        ans = []
-
-        if len(p) == 1: return "\\" + self.modlast(self.bijective(ord(p)))
-        for i in p:
-            if i == " ":
-                self.modspaceterm(ans[-1])
-                continue
-            s = self.modlast(self.bijective(ord(i)))
-            ans.append(s)
-        return "〘" + "".join(ans) + "〙"
-
-    def decompress(self,phrase):
-        answer = ""
-        num = []
-        escape_mode = 0
-        for i in phrase:
-            if i == "\\":
-                escape_mode = 1
-                continue
-            if i == "〘":
-                escape_mode = 2
-                continue
-            if i == "〙":
-                escape_mode = 0
-                continue
-            elif i in wordinit:
-                num.append(wordinit.index(i)+1)
-            elif i in wordterm:
-                num.append(wordterm.index(i)+1)
-                value = 0
-                for v in num:
-                    value = (value * 340) + v
-
-                if escape_mode != 0:
-                    answer += chr(value)
-                    if escape_mode == 1: escape_mode = 0
-                else:
-                    answer += words[value-1]
-                num = []
-            elif i in spaceterm:
-                num.append(spaceterm.index(i)+1)
-                value = 0
-                for v in num:
-                    value = (value * 340) + v
-
-                if escape_mode != 0:
-                    answer += chr(value) + " "
-                    if escape_mode == 1: escape_mode = 0
-                else:
-                    answer += words[value-1] + " "
-                num = []
-
-        if num != []:
-            value = 0
-            for v in num:
-                value = (value * 340) + v
-
-            if escape_mode != 0:
-                answer += chr(value)
-                if escape_mode == 1: escape_mode = 0
-            else:
-                answer += words[value - 1]
-
-        return answer
-
-
-    def inside(self,s):
-        if s in wordinit: return "wordinit"
-        if s in wordterm: return "wordterm"
-        if s in spaceterm: return "spaceterm"
-        return "none"
-
-    def broken_decompress(self,phrase):
-        answer = ""
-        for i in phrase:
-            num = []
-            if i in wordinit:
-                num.append(wordinit.index(i))
-            elif i in wordterm:
-                num.append(wordterm.index(i))
-                value = 0
-                for v in reversed(num):
-                    value = (value * 340) + v
-                answer += words[value]
-            elif i in spaceterm:
-                num.append(spaceterm.index(i))
-                value = 0
-                for v in reversed(num):
-                    value = (value * 340) + v
-                answer += words[value] + " "
-        return answer
-
-    @commands.command(name="compress",brief="Compress a phrasse with the Oganesson compression algorithm.")
-    async def _compress(self,ctx,*,phrase):
-        #if len(phrase) > 300:
-        #    return await ctx.send("Uh oh! You friccin moron! That string is too long!")
-        await ctx.send("```\n" + self.compress(phrase) + "\n```")
-
-    @commands.command(name="decompress",brief="Decompress a phrase compressed with the Oganesson compression algorithm.")
-    async def _decompress(self,ctx,*,phrase):
-        await ctx.send(self.decompress(phrase))
-
-    @commands.command(name="brokendecompress",brief="Decompress a phrase compressed with a broken implementation of the Oganesson compression algorithm.")
-    async def _bdecompress(self, ctx, *, phrase):
-        await ctx.send(self.broken_decompress(phrase))
-
-    @commands.command(brief="Decompress a randomly generated compressed string in the Oganesoon compression algorithm.")
-    async def randomdecompress(self,ctx, length : int):
-        if length > 100:
-            return await ctx.send("Uh oh! You friccin moron! That's too large a length!")
-        s = "".join([random.choice(compressalphabet) for i in range(length)])
-        while True:
-            try:
-                return await ctx.send(self.decompress(s))
-            except:
-                s = "".join([random.choice(compressalphabet) for i in range(length)])
-
-    '''
-    @commands.command(brief="Repeatedly compresses then decompresses a string using the Oganesson compression algorithm.")
-    async def itercompress(self, ctx, length : int, phrase):
-        if length > 10:
-            return await ctx.send("Uh oh! You friccin moron! That's too many compressions!")
-        
-        
-        
-        x = phrase
-        for i in range(length):
-            x = self.compress(x)
-        for i in range(length):
-            x = self.decompress(x)
-
-        await ctx.send(x)
-    '''
-
     @commands.command(brief="Get the nanosecond.")
     async def nanosecond(self,ctx):
         t = str(time.time_ns()%(10**9))
@@ -1250,6 +1058,7 @@ class Misc():
         embed.add_field(name="Ability", value=ability, inline=True)
         ans = "**Description** http://powerlisting.wikia.com/wiki/" + ability.replace(" ","_")
         await ctx.send(ans,embed=embed)
+
 
     '''
     @commands.command(brief="Talk to the DeepTWOW Bots!")

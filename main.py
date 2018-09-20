@@ -19,7 +19,7 @@ Get rekt milo.
 '''
 
 # this specifies what extensions to load when the bot starts up
-startup_extensions = ["textmanipulation","stem","misc","tags","boardgame","uno","dos","money","poker","cc"]
+startup_extensions = ["textmanipulation","stem","misc","tags","boardgame","uno","dos","money","poker","cc","chesh"]
 
 prefix = "b9!"
 
