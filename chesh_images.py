@@ -16,27 +16,42 @@ def getfont(size):
 
 
 #Draws text at the given position
-def center_text(draw, text, coords, font, fill):
-    wfont, hfont = draw.textsize(text, font=font)
-    draw.text((coords[0]-wfont/2,coords[1]-hfont/2), text, fill=fill, font=font)
+def draw_outline_text(draw, text, coords, font, shadowcolor):
+    x,y = coords
+    draw.text((x - 2, y), text, font=font, fill=shadowcolor)
+    draw.text((x + 2, y), text, font=font, fill=shadowcolor)
+    draw.text((x, y - 2), text, font=font, fill=shadowcolor)
+    draw.text((x, y + 2), text, font=font, fill=shadowcolor)
 
-def right_justify_text(draw, text, coords, font, fill):
+def center_text(draw, text, coords, font, fill, outline):
     wfont, hfont = draw.textsize(text, font=font)
-    draw.text((coords[0]-wfont,coords[1]-hfont/2), text, fill=fill, font=font)
+    c = (coords[0]-wfont/2,coords[1]-hfont/2)
+    if outline: draw_outline_text(draw, text, c, font, (0,0,0))
+    draw.text(c, text, fill=fill, font=font)
 
-def left_justify_text(draw, text, coords, font, fill):
+def right_justify_text(draw, text, coords, font, fill, outline):
     wfont, hfont = draw.textsize(text, font=font)
-    draw.text((coords[0],coords[1]-hfont/2), text, fill=fill, font=font)
+    c = (coords[0]-wfont,coords[1]-hfont/2)
+    if outline: draw_outline_text(draw, text, c, font, (0,0,0))
+    draw.text(c, text, fill=fill, font=font)
 
-def text(draw,text,color,size,location,alignment):
+def left_justify_text(draw, text, coords, font, fill, outline):
+    wfont, hfont = draw.textsize(text, font=font)
+    c = (coords[0],coords[1]-hfont/2)
+    if outline: draw_outline_text(draw, text, c, font, (0,0,0))
+    draw.text(c, text, fill=fill, font=font)
+
+def text(draw,text,color,size,location,alignment,outline=False):
     font = getfont(size)
 
     if alignment == "center":
-        center_text(draw, text, location, font, color)
+        center_text(draw, text, location, font, color,outline)
     elif alignment == "right":
-        right_justify_text(draw,text,location,font,color)
+        right_justify_text(draw,text,location,font,color,outline)
     elif alignment == "left":
-        left_justify_text(draw,text,location,font,color)
+        left_justify_text(draw,text,location,font,color,outline)
+
+
 
 
 
@@ -155,8 +170,8 @@ def game_image(game,moves=[]):
         text(d,string,color,30,(pos[0], pos[1] + d.textsize("Move 0",getfont(50))[1]),"left")
 
     if 0 in game.healths:
-        cw = game.color_w
-        cb = game.color_b
+        cw = white_color
+        cb = black_color
 
         tw = "Defeat"
         tb = "Defeat"
@@ -164,17 +179,16 @@ def game_image(game,moves=[]):
         if game.healths == [0,0]:
             tw = "Deftory"
             tb = "Deftory"
-            cw = (cw + 90) % 360
-            cb = (cb + 90) % 360
+            cw = converthsv(((game.color_w + 90)%360,100,76.8))
+            cb = converthsv(((game.color_b + 90)%360,100,76.8))
 
         elif game.healths[0] == 0:
             tw = "Victory"
         else:
             tb = "Victory"
 
-        deftory_color = game.color_w + 90 * random.choice([1,-1])
-        text(d,tw,cw,60,(OFFSET + 25*w, OFFSET + 25*game.occupied_rows),"center")
-        text(d,tb,cw,60,(OFFSET + 25*w, OFFSET + 50*game.height - 25*game.occupied_rows,"center"))
+        text(d, tw, cw, 60, (OFFSET + 25*w, OFFSET + 25*game.occupied_rows), "center",outline=True)
+        text(d,tb,cb,60,(OFFSET + 25*w, OFFSET + 50*game.height - 25*game.occupied_rows), "center",outline=True)
 
     #Draw HP
 
