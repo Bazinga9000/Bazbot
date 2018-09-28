@@ -104,6 +104,16 @@ class Chesh:
 
         selectable_pieces = [i for i in pieces.keys() if limit[i] <= min(self.height,self.width)]
 
+        sprite = img.spritesheet_size()
+        sprite = tuple(i // 40 for i in sprite)
+        sprites = []
+        for i in range(sprite[0]):
+            for j in range(sprite[1]):
+                sprites.append((i,j))
+
+        selectable_sprites = sprites[:]
+        random.shuffle(selectable_sprites)
+
         for i in range(self.occupied_rows):
             pcs_w.append([])
             pcs_b.append([])
@@ -127,9 +137,10 @@ class Chesh:
 
                 move = pieces[selected]
 
-                sprite = img.spritesheet_size()
-                sprite = tuple(i//40 for i in sprite)
-                sprite = tuple(random.randint(0,i-1) for i in sprite)
+                sprite = selectable_sprites.pop()
+                if len(selectable_sprites) == 0:
+                    selectable_sprites = sprites[:]
+                    random.shuffle(selectable_sprites)
 
                 royalty = (i,j) in royals
 
@@ -311,6 +322,32 @@ def free(f,distance=-1):
 
         return [[i] for i in new_moves]
 
+    return g
+
+#Creates a slider that follows a certain path, repeating if necessary
+def free_path(path,distance=-1):
+    def g(initpos,board):
+
+        new_moves = []
+        dist_counter = 0
+        new_delta = (0,0)
+        while dist_counter != distance:
+            i = path[dist_counter%len(path)]
+            new_delta = (new_delta[0] + i[0], new_delta[1] + i[1]) + i[2:]
+            new_pos = (initpos[0] + new_delta[0], initpos[1] + new_delta[1])
+
+            if len(board) > new_pos[0] >= 0 and len(board[0]) > new_pos[1] >= 0:
+                if board[new_pos[0]][new_pos[1]] is not None:
+                    new_moves.append(new_delta + i[2:])
+                    break
+                else:
+                    new_moves.append(new_delta + i[2:])
+            else:
+                 break
+
+            dist_counter += 1
+
+        return [[i] for i in new_moves]
     return g
 
 
@@ -616,6 +653,9 @@ pieces["retreater"] = union(pieces["pawn"],free(invert(pieces["pawn"])))
 pieces["cowardly_general"] = union(pieces["retreater"],transform(pieces["pawn"],"13"))
 pieces["running_dog"] = union(pieces["pawn"],transform(pieces["pawn"],"13"),free(invert(pieces["stone_general"])))
 pieces["sphinx"] = union(pieces["threeleaper"],pieces["camel"],pieces["zebra"],pieces["tripper"],lchain(pieces["squirrel"],pieces["king"]),lchain(pieces["king"],pieces["king"],pieces["king"]))
+pieces["crook"] = transform(free_path([(0,1),(1,0)]),"*")
+pieces["cardinal"] = transform(free_path([(1,1),(-1,1)]),"*")
+
 pieces["roaming_assault"] = transform(lchain(pieces["pawn"],pieces["pawn"],pieces["pawn"],pieces["pawn"],pieces["pawn"]),"x")
 pieces["thunderclap"] = lchain(pieces["wazir"],pieces["wazir"],pieces["wazir"],pieces["wazir"],pieces["wazir"],strict=True)
 
@@ -778,11 +818,13 @@ tiers['soaring_eagle'] = 6.25
 tiers['cavalry'] = 6.25
 tiers['roke'] = 6.25
 tiers['nightrider'] = 6.5
+tiers['cardinal'] = 6.75
 tiers['marshall'] = 7
 tiers['gryphon'] = 7
 tiers['hippogriff'] = 7
 tiers['bearded_dragon'] = 7
 tiers['frilled_dragon'] = 7
+tiers['crook'] = 7
 tiers['queen'] = 7.33
 tiers['winged_horse'] = 7.5
 tiers['lion'] = 7.75
@@ -868,6 +910,8 @@ limit['jouster'] = 4
 limit['retreater'] = 4
 limit['cowardly_general'] = 4
 limit['running_dog'] = 4
+limit['crook'] = 4
+limit['cardinal'] = 4
 limit['roke'] = 4
 limit['knight'] = 6
 limit['dabbaba'] = 6

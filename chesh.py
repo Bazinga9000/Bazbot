@@ -269,6 +269,8 @@ class CheshGame():
         await ctx.send(file=discord.File(img.game_image(game), filename="board.png"))
 
         if 0 in game.healths:
+            for i in game.players:
+                self.pdb[ctx.channel.id].pop(i.id, None)
             self.games.remove(game)
 
     @chesh.command(aliases=["info","board"])
@@ -326,8 +328,8 @@ class CheshGame():
             piece.piecename = newpiece
 
             return await ctx.send(file=discord.File(img.game_image(game), filename="board.png"))
+        '''
 
-    '''
 
 def setup(bot):
     bot.add_cog(CheshGame(bot))

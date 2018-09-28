@@ -18,10 +18,10 @@ def getfont(size):
 #Draws text at the given position
 def draw_outline_text(draw, text, coords, font, shadowcolor):
     x,y = coords
-    draw.text((x - 2, y), text, font=font, fill=shadowcolor)
-    draw.text((x + 2, y), text, font=font, fill=shadowcolor)
-    draw.text((x, y - 2), text, font=font, fill=shadowcolor)
-    draw.text((x, y + 2), text, font=font, fill=shadowcolor)
+    draw.text((x - 5, y), text, font=font, fill=shadowcolor)
+    draw.text((x + 5, y), text, font=font, fill=shadowcolor)
+    draw.text((x, y - 5), text, font=font, fill=shadowcolor)
+    draw.text((x, y + 5), text, font=font, fill=shadowcolor)
 
 def center_text(draw, text, coords, font, fill, outline):
     wfont, hfont = draw.textsize(text, font=font)
@@ -76,7 +76,7 @@ def draw_colored_box(d,pos,color):
         d.rectangle(points,color)
 
 
-OFFSET = 30
+OFFSET = 35
 
 def hp(n):
     if n > 15:
@@ -187,8 +187,9 @@ def game_image(game,moves=[]):
         else:
             tb = "Victory"
 
-        text(d, tw, cw, 60, (OFFSET + 25*w, OFFSET + 25*game.occupied_rows), "center",outline=True)
-        text(d,tb,cb,60,(OFFSET + 25*w, OFFSET + 50*game.height - 25*game.occupied_rows), "center",outline=True)
+        fontsize = max(60,10 * h)
+        text(d, tw, cw, fontsize, (OFFSET + 25*w, OFFSET + 25*game.occupied_rows), "center",outline=True)
+        text(d,tb,cb,fontsize,(OFFSET + 25*w, OFFSET + 50*game.height - 25*game.occupied_rows), "center",outline=True)
 
     #Draw HP
 
