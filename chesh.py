@@ -46,7 +46,33 @@ class CheshGame():
         if ctx.guild is None:
             return await ctx.send("Uh oh! You friccin moron! You can't use this command in DMs!")
 
-    @chesh.command()
+    @chesh.command(brief="Create a game played through one account")
+    async def selfcreate(self, ctx, board_height: int, board_width: int, *, flags=""):
+
+        if self.ingame(ctx):
+            return await ctx.send("Uh oh! You friccin moron! You're already in a game!")
+
+        if not (20 >= board_height >= 4 and 20 >= board_width >= 4):
+            return await ctx.send(
+                "Uh oh! You friccin moron! Your dimensions must be in between four and twenty inclusive.")
+
+        try:
+            self.games.append(mech.Chesh(board_width, board_height, flags=flags))
+        except mech.FlagError:
+            return await ctx.send("Uh oh! You friccin moron! One of your flags was invalid!")
+        self.pdb[ctx.channel.id][ctx.author.id] = self.games[-1]
+        self.games[-1].players.append(Player(ctx.author.id, True))
+        self.games[-1].players.append(Player(ctx.author.id, False))
+
+        self.games[-1].player_names = ["Player 1","Player 2"]
+        self.games[-1].started = True
+        self.games[-1].selfgame = True
+
+        await ctx.send("Game created!")
+        await ctx.send(file=discord.File(img.game_image(self.games[-1]), filename="board.png"))
+
+
+    @chesh.command(brief="Create a game played through two accounts")
     async def create(self, ctx, board_height : int, board_width : int, *, flags=""):
 
         if self.ingame(ctx):
@@ -127,9 +153,12 @@ class CheshGame():
         if game.started == False:
             return await ctx.send("Uh oh! You friccin moron! The game hasn't started yet!")
 
+        if game.selfgame:
+            pid = game.ply % 2
+
         if pid != game.ply % 2:
             return await ctx.send("Uh oh! You friccin moron! It's not your turn!")
-        
+
 
         try:
             pos = self.convert_position(position.upper())
@@ -176,6 +205,8 @@ class CheshGame():
         game = self.pdb[ctx.channel.id][ctx.author.id]
         pid = [i.id for i in game.players].index(ctx.author.id)
 
+        if game.selfgame:
+            pid = game.ply % 2
 
         if game.started == False:
             return await ctx.send("Uh oh! You friccin moron! The game hasn't started yet!")
