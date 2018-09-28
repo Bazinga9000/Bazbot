@@ -121,7 +121,7 @@ class Chesh:
                     piece_tiers = [i/s for i in piece_tiers]
 
 
-                    selected = numpy.random.choice(list(tiers.keys()),1,p=piece_tiers)[0]
+                    selected = numpy.random.choice(selectable_pieces,1,p=piece_tiers)[0]
                 else:
                     selected = random.choice(selectable_pieces)
 
