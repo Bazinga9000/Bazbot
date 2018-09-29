@@ -285,8 +285,8 @@ class CheshGame():
 
         return await ctx.send(file=discord.File(img.game_image(game), filename="board.png"))
 
-    '''
-    @chesh.command()
+
+    @chesh.command(brief="Transmute a piece into another [only works if the `debug` flag is enabled]")
     async def inject(self, ctx, position, newpiece):
         if not self.ingame(ctx):
             return await ctx.send("Uh oh! You friccin moron! You aren't in a game!")
@@ -294,6 +294,8 @@ class CheshGame():
         game = self.pdb[ctx.channel.id][ctx.author.id]
         pid = [i.id for i in game.players].index(ctx.author.id)
 
+        if "debug" not in game.flags:
+            return await ctx.send("Uh oh! You friccin moron! This game is not debug enabled!")
         
         if game.started == False:
             return await ctx.send("Uh oh! You friccin moron! The game hasn't started yet!")
@@ -328,7 +330,7 @@ class CheshGame():
             piece.piecename = newpiece
 
             return await ctx.send(file=discord.File(img.game_image(game), filename="board.png"))
-        '''
+
 
 
 def setup(bot):

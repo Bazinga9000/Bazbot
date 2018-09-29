@@ -162,7 +162,7 @@ def game_image(game,moves=[]):
 
     pos = (OFFSET + 50*w + 10, OFFSET + 25*h)
     color = white_color if game.ply % 2 else black_color
-    text(d,"Move {}".format(game.turn+1),color,50,pos,"left")
+    text(d,"Move {}".format(game.ply+1),color,50,pos,"left")
 
     if game.selected_piece is not None:
         titlecase = lambda x: x.replace("_"," ").title()

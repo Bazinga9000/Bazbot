@@ -294,7 +294,7 @@ def invert(f):
     return transform(f,"-")
 
 #Turns leapers into riders
-def free(f,distance=-1):
+def free(f,distance=-1,strict=False):
     def g(initpos,board):
 
         moves = f(initpos,board)
@@ -311,10 +311,10 @@ def free(f,distance=-1):
 
                     if len(board) > new_pos[0] >= 0 and len(board[0]) > new_pos[1] >= 0:
                         if board[new_pos[0]][new_pos[1]] is not None:
-                            new_moves.append(new_delta + i[2:])
+                            if dist_counter == distance-1 or not strict: new_moves.append(new_delta + i[2:])
                             break
                         else:
-                            new_moves.append(new_delta + i[2:])
+                            if dist_counter == distance-1 or not strict: new_moves.append(new_delta + i[2:])
                     else:
                         break
 
@@ -617,9 +617,20 @@ pieces["cavalry"] = transform(lchain(leaper(2,1),union(leaper(2,1),leaper(2,-1),
 pieces["winged_horse"] = lchain(pieces["knight"],pieces["knight"])
 pieces["donkey"] = union(pieces["wazir"],transform(leaper(2,0),"02"))
 pieces["side_flyer"] = union(pieces["ferz"],free(transform(pieces["pawn"],"13")))
-pieces["vertical_flyer"] = transform(pieces["side_flyer"],"1")
 pieces["square_mover"] = union(pieces["rook"],pieces["stone_general"])
 pieces["racing_chariot"] = invert(pieces["square_mover"])
+
+#Shogi-Like
+pieces["vertical_flyer"] = transform(pieces["side_flyer"],"1")
+pieces["retreater"] = union(pieces["pawn"],free(invert(pieces["pawn"])))
+pieces["cowardly_general"] = union(pieces["retreater"],transform(pieces["pawn"],"13"))
+pieces["running_dog"] = union(pieces["pawn"],transform(pieces["pawn"],"13"),free(invert(pieces["stone_general"])))
+pieces["roaming_assault"] = transform(lchain(pieces["pawn"],pieces["pawn"],pieces["pawn"],pieces["pawn"],pieces["pawn"]),"x")
+pieces["thunderclap"] = lchain(pieces["wazir"],pieces["wazir"],pieces["wazir"],pieces["wazir"],pieces["wazir"],strict=True)
+pieces["toluene"] = union(pieces["ferocious_leopard"],free(pieces["pawn"],2))
+pieces["nitro"] = union(pieces["ferocious_leopard"],free(invert(pieces["pawn"]),2))
+pieces["parachlor"] = union(pieces["ferocious_leopard"],free(pieces["go_between"],2))
+pieces["antichlor"] = union(pieces["ferocious_leopard"],transform(free(pieces["go_between"],2,strict=True),"13"))
 
 #Combinations
 pieces["nightrider"] = free(pieces["knight"])
@@ -649,15 +660,10 @@ pieces["battering_ram"] = union(pieces["rook"],pieces["alfil"])
 pieces["bearded_dragon"] = union(pieces["dragon_king"],transform(leaper(1,2),"03|\\"))
 pieces["frilled_dragon"] = invert(pieces["bearded_dragon"])
 pieces["komodo_dragon"] = union(pieces["dragon_king"],pieces["knight"])
-pieces["retreater"] = union(pieces["pawn"],free(invert(pieces["pawn"])))
-pieces["cowardly_general"] = union(pieces["retreater"],transform(pieces["pawn"],"13"))
-pieces["running_dog"] = union(pieces["pawn"],transform(pieces["pawn"],"13"),free(invert(pieces["stone_general"])))
 pieces["sphinx"] = union(pieces["threeleaper"],pieces["camel"],pieces["zebra"],pieces["tripper"],lchain(pieces["squirrel"],pieces["king"]),lchain(pieces["king"],pieces["king"],pieces["king"]))
 pieces["crook"] = transform(free_path([(0,1),(1,0)]),"*")
 pieces["cardinal"] = transform(free_path([(1,1),(-1,1)]),"*")
 
-pieces["roaming_assault"] = transform(lchain(pieces["pawn"],pieces["pawn"],pieces["pawn"],pieces["pawn"],pieces["pawn"]),"x")
-pieces["thunderclap"] = lchain(pieces["wazir"],pieces["wazir"],pieces["wazir"],pieces["wazir"],pieces["wazir"],strict=True)
 
 def isprime(n):
     if int(n) != n: return False
@@ -787,7 +793,12 @@ tiers['s_barbarian'] = 3
 tiers['prancing_stag'] = 3
 tiers['poisonous_snake'] = 3.25
 tiers['flying_horse'] = 3.25
+tiers['antichlor'] = 3.25
 tiers['side_mover'] = 3.5
+tiers['toluene'] = 3.5
+tiers['parachlor'] = 3.5
+tiers['antichlor'] = 3.5
+tiers['nitro'] = 3.5
 tiers['vertical_mover'] = 3.67
 tiers['flying_stag'] = 3.75
 tiers['side_flyer'] = 4
@@ -910,6 +921,10 @@ limit['jouster'] = 4
 limit['retreater'] = 4
 limit['cowardly_general'] = 4
 limit['running_dog'] = 4
+limit['toluene'] = 4
+limit['nitro'] = 4
+limit['parachlor'] = 4
+limit['antichlor'] = 4
 limit['crook'] = 4
 limit['cardinal'] = 4
 limit['roke'] = 4
