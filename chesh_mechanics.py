@@ -420,12 +420,20 @@ def transform(f,transforms):
     def h(initpos,board):
         moves = []
 
-        board_size = len(board)//2 - 0.5
+        b = deepcopy(board)
+        while len(b) > len(b[0]):
+            for i in b:
+                i.append(None)
+        while len(b[0]) > len(b):
+            b.append([None for i in range(len(b[0]))])
+
+        board_height = len(b)//2 - 0.5
+        board_width = len(b[0])//2 - 0.5
 
         for i in transforms:
-            new_board = board_rotations[i](board)
+            new_board = board_rotations[i](b)
 
-            pmoves = f(shift_rotations(initpos,(board_size,board_size),i),new_board)
+            pmoves = f(shift_rotations(initpos,(board_height,board_width),i),new_board)
 
             for m in pmoves:
                 moves.append([point_rots[inverses[i]](k) for k in m])
@@ -619,6 +627,8 @@ pieces["donkey"] = union(pieces["wazir"],transform(leaper(2,0),"02"))
 pieces["side_flyer"] = union(pieces["ferz"],free(transform(pieces["pawn"],"13")))
 pieces["square_mover"] = union(pieces["rook"],pieces["stone_general"])
 pieces["racing_chariot"] = invert(pieces["square_mover"])
+pieces["treacherous_fox"] = union(pieces["alfil"],pieces["ferocious_leopard"],transform(leaper(2,0),"02"))
+pieces["running_rabbit"] = union(pieces["blind_monkey"],pieces["lance"])
 
 #Shogi-Like
 pieces["vertical_flyer"] = transform(pieces["side_flyer"],"1")
@@ -660,6 +670,10 @@ pieces["battering_ram"] = union(pieces["rook"],pieces["alfil"])
 pieces["bearded_dragon"] = union(pieces["dragon_king"],transform(leaper(1,2),"03|\\"))
 pieces["frilled_dragon"] = invert(pieces["bearded_dragon"])
 pieces["komodo_dragon"] = union(pieces["dragon_king"],pieces["knight"])
+pieces["caliph"] = union(pieces["bishop"],pieces["camel"])
+pieces["canvasser"] = union(pieces["rook"],pieces["camel"])
+pieces["crab"] = union(*[leaper(i,j) for i,j in [(2,1),(2,-1),(-1,-2),(-1,2)]])
+pieces["gnu"] = union(pieces["knight"],pieces["camel"])
 pieces["sphinx"] = union(pieces["threeleaper"],pieces["camel"],pieces["zebra"],pieces["tripper"],lchain(pieces["squirrel"],pieces["king"]),lchain(pieces["king"],pieces["king"],pieces["king"]))
 pieces["crook"] = transform(free_path([(0,1),(1,0)]),"*")
 pieces["cardinal"] = transform(free_path([(1,1),(-1,1)]),"*")
@@ -791,6 +805,7 @@ tiers['e_barbarian'] = 3
 tiers['n_barbarian'] = 3
 tiers['s_barbarian'] = 3
 tiers['prancing_stag'] = 3
+tiers['crab'] = 3
 tiers['poisonous_snake'] = 3.25
 tiers['flying_horse'] = 3.25
 tiers['antichlor'] = 3.25
@@ -803,6 +818,9 @@ tiers['vertical_mover'] = 3.67
 tiers['flying_stag'] = 3.75
 tiers['side_flyer'] = 4
 tiers['jouster'] = 4
+tiers['treacherous_fox'] = 4
+tiers['running_rabbit'] = 4
+tiers['gnu'] = 4
 tiers['bishop'] = 4.17
 tiers['vertical_flyer'] = 4.25
 tiers['squirrel'] = 4.33
@@ -822,6 +840,8 @@ tiers['dragon_king'] = 6
 tiers['whale'] = 6
 tiers['paladin'] = 6
 tiers['ninja'] = 6
+tiers['caliph'] = 6
+tiers['canvasser'] = 6
 tiers['flying_ox'] = 6.25
 tiers['free_boar'] = 6.25
 tiers['horned_falcon'] = 6.25
@@ -928,6 +948,7 @@ limit['antichlor'] = 4
 limit['crook'] = 4
 limit['cardinal'] = 4
 limit['roke'] = 4
+limit['running_rabbit'] = 4
 limit['knight'] = 6
 limit['dabbaba'] = 6
 limit['alfil'] = 6
@@ -958,6 +979,8 @@ limit['battering_ram'] = 6
 limit['bearded_dragon'] = 6
 limit['frilled_dragon'] = 6
 limit['komodo_dragon'] = 6
+limit['treacherous_fox'] = 6
+limit['crab'] = 6
 limit['threeleaper'] = 8
 limit['camel'] = 8
 limit['zebra'] = 8
@@ -965,6 +988,9 @@ limit['tripper'] = 8
 limit['frog'] = 8
 limit['bison'] = 8
 limit['sphinx'] = 8
+limit['caliph'] = 8
+limit['canvasser'] = 8
+limit['gnu'] = 8
 limit['fourleaper'] = 10
 limit['giraffe'] = 10
 limit['lancer'] = 10
