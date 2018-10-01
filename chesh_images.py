@@ -166,7 +166,7 @@ def game_image(game,moves=[]):
 
     if game.selected_piece is not None:
         titlecase = lambda x: x.replace("_"," ").title()
-        string = titlecase(game.board[game.selected_piece[0]][game.selected_piece[1]].piecename)
+        string = titlecase(game.board[game.selected_piece[0]][game.selected_piece[1]].name)
         text(d,string,color,30,(pos[0], pos[1] + d.textsize("Move 0",getfont(50))[1]),"left")
 
     if 0 in game.healths:

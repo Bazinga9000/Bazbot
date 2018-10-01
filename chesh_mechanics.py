@@ -126,7 +126,8 @@ class Chesh:
                     base_tier = max(base_tier,1)
 
                     piece_tiers = list(tiers[i] for i in selectable_pieces)
-                    piece_tiers = [scipy.stats.norm(base_tier, 1).pdf(i) for i in piece_tiers]
+                    #piece_tiers = [scipy.stats.norm(base_tier, 1).pdf(i) for i in piece_tiers]
+                    piece_tiers = [normpdf(i,base_tier,1) for i in piece_tiers]
                     s = sum(piece_tiers)
                     piece_tiers = [i/s for i in piece_tiers]
 
@@ -135,8 +136,6 @@ class Chesh:
                 else:
                     selected = random.choice(selectable_pieces)
 
-                move = pieces[selected]
-
                 sprite = selectable_sprites.pop()
                 if len(selectable_sprites) == 0:
                     selectable_sprites = sprites[:]
@@ -144,8 +143,8 @@ class Chesh:
 
                 royalty = (i,j) in royals
 
-                pcs_w[-1].append(Piece(sprite,self.color_w,1,move,self,selected,royalty))
-                pcs_b[-1].append(Piece(sprite,self.color_b,-1,move,self,selected,royalty))
+                pcs_w[-1].append(Piece(sprite,self.color_w,1,self,selected,royalty))
+                pcs_b[-1].append(Piece(sprite,self.color_b,-1,self,selected,royalty))
 
             if board_width % 2:
                 pcs_w[-1] = pcs_w[-1][:-1] + deepcopy(pcs_w[-1])[::-1]
@@ -242,21 +241,23 @@ class Chesh:
         return [self.position_list(position,i) for i in moves]
 
 
-
+def normpdf(x, mean, sd):
+    var = float(sd)**2
+    pi = 3.1415926
+    denom = (2*pi*var)**.5
+    num = math.exp(-(float(x)-float(mean))**2/(2*var))
+    return num/denom
 
 
 class Piece:
-    def __init__(self,art,color,team,move,game,name,royal=False):
+    def __init__(self,art,color,team,game,name,royal=False):
         self.art = art
         self.color = color
         self.team = team
 
-        self.piecename = name
+        self.name = name
 
-        if self.team == 1:
-            self.move = move
-        elif self.team == -1:
-            self.move = invert(move)
+        self.move = self.getmove()
 
         self.royal = royal
 
@@ -272,6 +273,21 @@ class Piece:
             for x,j in enumerate(i):
                 if j is self:
                     return (x,y)
+
+    def getmove(self):
+        if self.team == 1:
+            return pieces[self.name]
+        elif self.team == -1:
+            return invert(pieces[self.name])
+
+    def __deepcopy__(self, memodict={}):
+        if self.team == 1:
+            c = self.game.color_w
+        elif self.team == -1:
+            c = self.game.color_b
+        copy = Piece(self.art,c,self.team,self.game,self.name,self.royal)
+        copy.fatigue = self.fatigue
+        return copy
 
 
 
@@ -421,11 +437,15 @@ def transform(f,transforms):
         moves = []
 
         b = deepcopy(board)
-        while len(b) > len(b[0]):
-            for i in b:
-                i.append(None)
-        while len(b[0]) > len(b):
-            b.append([None for i in range(len(b[0]))])
+
+        if len(b) != len(b[0]):
+            while len(b) > len(b[0]):
+                for i in b:
+                    print("append")
+                    i.append(None)
+            while len(b[0]) > len(b):
+                print("new list")
+                b.append([None for i in range(len(b[0]))])
 
         board_height = len(b)//2 - 0.5
         board_width = len(b[0])//2 - 0.5

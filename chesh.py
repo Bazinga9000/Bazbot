@@ -5,10 +5,8 @@ import discord
 from discord.ext import commands
 import chesh_mechanics as mech
 import chesh_images as img
+import pickle
 
-'''
-BAZBOT
-'''
 class Player():
     def __init__(self,id,host):
         self.id = id
@@ -20,10 +18,33 @@ class CheshGame():
         importlib.reload(mech)
         importlib.reload(img)
         self.bot = bot
-        self.games = []
-        self.pdb = {}
+        try:
+            with open("cheshgames.pkl","rb") as f:
+                self.pdb = pickle.load(f)
+
+            for i in self.pdb.values():
+                for j in i.values():
+                    for k in j.board:
+                        for l in k:
+                            if l is not None:
+                                l.move = l.getmove()
+
+        except Exception as e:
+            print(e)
+            self.pdb = {}
 
         self.letters = [i for i in "ABCDEFGHIJKLMNOPQRSTUVWXYZ"] + ["AA", "BB", "CC", "DD"]
+
+    def __unload(self):
+        for i in self.pdb.values():
+            for j in i.values():
+                for k in j.board:
+                    for l in k:
+                        if l is not None:
+                            l.move = None
+
+        with open("cheshgames.pkl","wb+") as f:
+            pickle.dump(self.pdb,f)
 
     def getgame(self, ctx):
         return self.pdb[ctx.channel.id][ctx.author.id]
@@ -53,23 +74,22 @@ class CheshGame():
             return await ctx.send("Uh oh! You friccin moron! You're already in a game!")
 
         if not (20 >= board_height >= 4 and 20 >= board_width >= 4):
-            return await ctx.send(
-                "Uh oh! You friccin moron! Your dimensions must be in between four and twenty inclusive.")
+            return await ctx.send("Uh oh! You friccin moron! Your dimensions must be in between four and twenty inclusive.")
 
         try:
-            self.games.append(mech.Chesh(board_width, board_height, flags=flags))
+            self.pdb[ctx.channel.id][ctx.author.id] = (mech.Chesh(board_width, board_height, flags=flags))
         except mech.FlagError:
             return await ctx.send("Uh oh! You friccin moron! One of your flags was invalid!")
-        self.pdb[ctx.channel.id][ctx.author.id] = self.games[-1]
-        self.games[-1].players.append(Player(ctx.author.id, True))
-        self.games[-1].players.append(Player(ctx.author.id, False))
+        game = self.pdb[ctx.channel.id][ctx.author.id]
+        game.players.append(Player(ctx.author.id, True))
+        game.players.append(Player(ctx.author.id, False))
 
-        self.games[-1].player_names = ["Player 1","Player 2"]
-        self.games[-1].started = True
-        self.games[-1].selfgame = True
+        game.player_names = ["Player 1","Player 2"]
+        game.started = True
+        game.selfgame = True
 
         await ctx.send("Game created!")
-        await ctx.send(file=discord.File(img.game_image(self.games[-1]), filename="board.png"))
+        await ctx.send(file=discord.File(img.game_image(game), filename="board.png"))
 
 
     @chesh.command(brief="Create a game played through two accounts")
@@ -84,12 +104,12 @@ class CheshGame():
 
 
         try:
-            self.games.append(mech.Chesh(board_width,board_height,flags=flags))
+            self.pdb[ctx.channel.id][ctx.author.id] = (mech.Chesh(board_width, board_height, flags=flags))
         except mech.FlagError:
             return await ctx.send("Uh oh! You friccin moron! One of your flags was invalid!")
-        self.pdb[ctx.channel.id][ctx.author.id] = self.games[-1]
-        self.games[-1].players.append(Player(ctx.author.id,True))
-        self.games[-1].player_names[0] = ctx.author.name
+        game = self.pdb[ctx.channel.id][ctx.author.id]
+        game.players.append(Player(ctx.author.id,True))
+        game.player_names[0] = ctx.author.name
         await ctx.send("Game created!")
         #await ctx.send(file=discord.File(img.game_image(self.games[-1]), filename="board.png"))
 
@@ -126,10 +146,8 @@ class CheshGame():
         game.players = [x for x in game.players if x.id != ctx.author.id]
         self.pdb[ctx.channel.id].pop(ctx.author.id, None)
 
-        if len(game.players) == 0:
-            self.games.remove(game)
-        else:
-            self.games[-1].players[0].host = True
+        if len(game.players) != 0:
+            game.players[0].host = True
 
         await ctx.send("You have left your game!")
 
@@ -271,7 +289,6 @@ class CheshGame():
         if 0 in game.healths:
             for i in game.players:
                 self.pdb[ctx.channel.id].pop(i.id, None)
-            self.games.remove(game)
 
     @chesh.command(aliases=["info","board"])
     async def status(self, ctx):
@@ -326,8 +343,8 @@ class CheshGame():
                 piece.move = mech.pieces[newpiece]
 
 
-            await ctx.send("Replaced the piece on {} (Previously {}) with {}".format(position, piece.piecename, newpiece))
-            piece.piecename = newpiece
+            await ctx.send("Replaced the piece on {} (Previously {}) with {}".format(position, piece.name, newpiece))
+            piece.name = newpiece
 
             return await ctx.send(file=discord.File(img.game_image(game), filename="board.png"))
 
