@@ -1059,7 +1059,7 @@ class Misc():
         ans = "**Description** http://powerlisting.wikia.com/wiki/" + ability.replace(" ","_")
         await ctx.send(ans,embed=embed)
 
-    @commands.command(brief="See if you were saved or spared by Thanos.")
+    @commands.command(brief="See if you were saved or snapped by Thanos.")
     async def thanos(self,ctx):
         if ctx.author.id % 10 in [8,7,6,5,1]:
             return await ctx.send("You were saved by Thanos.")

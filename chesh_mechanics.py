@@ -67,6 +67,8 @@ class Chesh:
         if "noroyals" not in self.flags:
             royals = self.generate_royal_positions()
         else:
+            if "monarchy" in self.flags:
+                raise FlagError
             royals = []
 
         if "monarchy" in self.flags:

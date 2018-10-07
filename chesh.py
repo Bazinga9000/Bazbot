@@ -349,6 +349,18 @@ class CheshGame():
             return await ctx.send(file=discord.File(img.game_image(game), filename="board.png"))
 
 
+    @chesh.command(brief="Lists all flags usable in b9!chesh.")
+    async def flags(self,ctx):
+        message = '''
+        `orows=<number>` - Sets the number of occupied rows (No more than a quarter the board height)
+        `noroyals` - Removes all royals from the game
+        `monarchy` - Only capturing royals deals damage (1 per royal)
+        `health=<number>` - Sets the started health to the specified number (No more than the total value of all pieces)
+        `nofatigue` - Disables fatigue, allowing a piece to be moved arbitrarily many times repeatedly
+        `purerandom` - Changes piece generation to be completely random, as opposed to placing stronger pieces towards the back.
+        '''
+
+        await ctx.send(message)
 
 def setup(bot):
     bot.add_cog(CheshGame(bot))
