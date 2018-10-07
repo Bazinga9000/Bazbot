@@ -1061,7 +1061,7 @@ class Misc():
 
     @commands.command(brief="See if you were saved or spared by Thanos.")
     async def thanos(self,ctx):
-        if ctx.author.id % 10 in [2,3,5,7,9]:
+        if ctx.author.id % 10 in [8,7,6,5,1]:
             return await ctx.send("You were saved by Thanos.")
         else:
             return await ctx.send("You were snapped by Thanos.")
