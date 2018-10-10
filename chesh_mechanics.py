@@ -55,7 +55,7 @@ class Chesh:
                 self.flags[i[0]] = i[1:]
 
         if "orows" in self.flags:
-            if int(self.flags["orows"]) > self.height//4 or int(self.flags["orows"]) < 1:
+            if int(self.flags["orows"]) > self.height//2 or int(self.flags["orows"]) < 1:
                 raise FlagError
             else:
                 self.occupied_rows = int(self.flags["orows"])
@@ -116,6 +116,10 @@ class Chesh:
         selectable_sprites = sprites[:]
         random.shuffle(selectable_sprites)
 
+
+        base_values = list(numpy.linspace(1,round(board_height/2),self.occupied_rows))
+        print(base_values)
+
         for i in range(self.occupied_rows):
             pcs_w.append([])
             pcs_b.append([])
@@ -123,7 +127,7 @@ class Chesh:
             for j in range(halfwidth):
 
                 if not pure_random:
-                    row_base = [1,4,6,8,10][self.occupied_rows-i-1]
+                    row_base = base_values[self.occupied_rows-i-1]
                     base_tier = row_base - ((row_base/20) * (halfwidth - j + 1))
                     base_tier = max(base_tier,1)
 
