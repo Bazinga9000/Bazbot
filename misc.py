@@ -14,6 +14,7 @@ import itertools
 import time
 import datetime
 from io import TextIOWrapper, BytesIO
+import pickle
 import re
 
 warnings.simplefilter('error', Image.DecompressionBombWarning)
@@ -52,6 +53,15 @@ class Misc():
         self.bot = bot
         self.ratel = lambda x: int(hashlib.sha256(x.lower().encode('utf-8')).hexdigest(),16) % 101
         self.ts = {}
+        try:
+            with open("givetake.pkl","rb") as f:
+                p = pickle.load(f)
+                self.givetakescore = p[0]
+                self.givetakeleaderboard = p[1]
+
+        except:
+            self.givetakescore = 0
+            self.givetakeleaderboard = {}
 
     def crop(self, im, new_width, new_height):
         width, height = im.size   # Get dimensions
@@ -1065,6 +1075,56 @@ class Misc():
             return await ctx.send("You were saved by Thanos.")
         else:
             return await ctx.send("You were snapped by Thanos.")
+
+    @commands.command(brief="View the givetake stats")
+    async def gtstats(self, ctx):
+        try:
+            self.givetakeleaderboard[ctx.author.id]
+        except:
+            self.givetakeleaderboard[ctx.author.id] = 0
+
+        message = '**The Pot: {}**\n'.format(self.givetakescore)
+
+        leaderboard = self.givetakeleaderboard.items()
+        leaderboard = sorted(leaderboard,key=lambda x: x[1],reverse=True)
+        your_rank = 1 + [i[0] for i in leaderboard].index(ctx.author.id)
+        message += "Your Rank: #{} (Score of {})\n".format(your_rank, self.givetakeleaderboard[ctx.author.id])
+        message += "Top 10:\n```"
+        for q,i in enumerate(leaderboard[:10]):
+            message += "#{}, {} - {}\n".format(q+1, self.bot.get_user(i[0]), i[1])
+
+        message += "```"
+        await ctx.send(message)
+
+    @commands.cooldown(1,300,type=commands.BucketType.user)
+    @commands.command(brief="A game of give and take",aliases=["gt"])
+    async def givetake(self, ctx, option):
+        try:
+            self.givetakeleaderboard[ctx.author.id]
+        except:
+            self.givetakeleaderboard[ctx.author.id] = 0
+
+        if option.lower() not in ["give","take"]:
+            emsg = '''Uh oh! You friccin moron! The only valid options are `give` and `take`!
+            `give` - Add 1 point to the Pot
+            `take` - Add the entire pot to your score and reset the pot'''
+            return await ctx.send(emsg)
+
+        if ctx.guild is None:
+            return await ctx.send("Uh oh! You friccin moron! You can't use this command in DMs!")
+
+        if option.lower() == "give":
+            self.givetakescore += 1
+            await ctx.send("You have given the Pot 1 point! It currently stands at {}!".format(self.givetakescore))
+        elif option.lower() == "take":
+            self.givetakeleaderboard[ctx.author.id] += self.givetakescore
+            await ctx.send("You have taken the Pot for yourself! {} Points have been added to your score, which is now {}".format(self.givetakescore,self.givetakeleaderboard[ctx.author.id]))
+            self.givetakescore = 0
+
+
+        with open("givetake.pkl","wb") as f:
+            pickle.dump((self.givetakescore,self.givetakeleaderboard),f)
+
 
     '''
     @commands.command(brief="Talk to the DeepTWOW Bots!")
