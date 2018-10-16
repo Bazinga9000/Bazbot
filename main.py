@@ -73,7 +73,7 @@ async def on_command_error(ctx, error):
     if isinstance(error, commands.errors.CheckFailure):
         await ctx.send("You can't do that!")
     elif isinstance(error, commands.errors.CommandOnCooldown):
-        return await ctx.send(ctx.author.name + ", you need to put a handle on your stallions. This command can only be used every " + str(error.cooldown.per) + "sec!")
+        return await ctx.send(ctx.author.name + ", you need to put a handle on your stallions for {} more seconds. This command can only be used every {} sec!".format(round(error.retry_after,2),error.cooldown.per))
     elif isinstance(error, commands.errors.CommandNotFound):
         pass
     elif isinstance(error, commands.errors.MissingRequiredArgument):
