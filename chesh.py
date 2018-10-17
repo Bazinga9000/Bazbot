@@ -58,14 +58,13 @@ class CheshGame():
 
 
     @commands.group(brief="Play Chesh! (A clone of the app of the same name, with more jank)")
+    @commands.guild_only()
     async def chesh(self, ctx):
         try:
             x = self.pdb[ctx.channel.id]
         except:
             self.pdb[ctx.channel.id] = {}
 
-        if ctx.guild is None:
-            return await ctx.send("Uh oh! You friccin moron! You can't use this command in DMs!")
 
     @chesh.command(brief="Create a game played through one account")
     async def selfcreate(self, ctx, board_height: int, board_width: int, *, flags=""):

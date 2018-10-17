@@ -70,6 +70,8 @@ def gettraceback(exception):
 
 @bot.event
 async def on_command_error(ctx, error):
+    if isinstance(error, commands.errors.NoPrivateMessage):
+        return await ctx.send("Uh oh! You friccin moron! You can't use this command in DMs!")
     if isinstance(error, commands.errors.CheckFailure):
         await ctx.send("You can't do that!")
     elif isinstance(error, commands.errors.CommandOnCooldown):

@@ -474,15 +474,13 @@ class Misc():
         return await ctx.send(d)
 
 
+    @commands.guild_only()
     @commands.command(brief="The World! Stop time!")
     async def theworld(self,ctx):
         try:
             x = self.ts[ctx.guild.id]
         except:
             self.ts[ctx.guild.id] = False
-
-        if ctx.guild is None:
-            return await ctx.send("You can't use that ability here...")
 
 
 
@@ -1096,6 +1094,7 @@ class Misc():
         message += "```"
         await ctx.send(message)
 
+    @commands.guild_only()
     @commands.cooldown(1,300,type=commands.BucketType.user)
     @commands.command(brief="A game of give and take",aliases=["gt"])
     async def givetake(self, ctx, option):
@@ -1110,12 +1109,17 @@ class Misc():
             `take` - Add the entire pot to your score and reset the pot'''
             return await ctx.send(emsg)
 
-        if ctx.guild is None:
-            return await ctx.send("Uh oh! You friccin moron! You can't use this command in DMs!")
-
         if option.lower() == "give":
-            self.givetakescore += 1
-            await ctx.send("You have given the Pot 1 point! It currently stands at {}!".format(self.givetakescore))
+            potdelta = 1
+            for i in range(self.givetakescore):
+                if random.randint(1,10) == 10:
+                    potdelta += 1
+            self.givetakescore += potdelta
+            if potdelta == 1:
+                await ctx.send("You have given the pot a point! It currently stands at {}!".format(self.givetakescore))
+            else:
+                await ctx.send("You have given the pot {} points! It currently stands at {}!".format(potdelta,self.givetakescore))
+
         elif option.lower() == "take":
             self.givetakeleaderboard[ctx.author.id] += self.givetakescore
             await ctx.send("You have taken the Pot for yourself! {} Points have been added to your score, which is now {}".format(self.givetakescore,self.givetakeleaderboard[ctx.author.id]))

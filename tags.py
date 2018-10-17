@@ -316,14 +316,10 @@ class Tags():
         return [p for p in self.tags if p.guild == id]
 
 
+    @commands.guild_only()
     @commands.group(brief="Tag System",invoke_without_command=True)
     @commands.cooldown(1,4,type=commands.BucketType.user)
     async def tag(self,ctx, name : str):
-
-        if ctx.guild is None: 
-            return await ctx.send("Uh oh! You friccin moron! You can't use tags in DM!")
-            
-
         if ctx.author.bot: return
 
         valid_tags = self.getservertags(ctx.guild.id)
@@ -339,15 +335,13 @@ class Tags():
             await ctx.send(tag.get(ctx))
             self.dump_tags()
 
+    @commands.guild_only()
     @tag.command(brief="Create a tag!")
     async def create(self, ctx, name: str, *, text: str):
 
         if name in self.banned_tags:
             await ctx.send("Uh oh! You friccin moron! That can't be a tag!")
             return
-
-        if ctx.guild is None: 
-            return await ctx.send("Uh oh! You friccin moron! You can't use tags in DM!")
 
         id = ctx.guild.id
 
@@ -363,12 +357,9 @@ class Tags():
             self.dump_tags()
             await ctx.send(ctx.author.name + ", Your tag has been created!")
 
+    @commands.guild_only()
     @tag.command(brief="List tags!")
     async def list(self, ctx, page : int):
-        
-        if ctx.guild is None: 
-            return await ctx.send("Uh oh! You friccin moron! You can't use tags in DM!")
-        
         valid_tags = self.getservertags(ctx.guild.id)
 
         if page < 1:
@@ -399,15 +390,13 @@ class Tags():
         text += "```"
         await ctx.send(text)
 
+    @commands.guild_only()
     @tag.command(brief="Edit a tag you own!")
     async def edit(self, ctx, name : str, *, text : str):
 
         if name in self.banned_tags:
             await ctx.send("Uh oh! You friccin moron! That can't be a tag!")
             return
-
-        if ctx.guild is None: 
-            return await ctx.send("Uh oh! You friccin moron! You can't use tags in DM!")
 
         valid_tags = self.getservertags(ctx.guild.id)
         names = [t.name for t in valid_tags]
@@ -428,15 +417,13 @@ class Tags():
             self.dump_tags()
             await ctx.send("Tag edited!")
 
+    @commands.guild_only()
     @tag.command(brief="Delete a tag you own!")
     async def delete(self, ctx, name: str):
 
         if name in self.banned_tags:
             await ctx.send("Uh oh! You friccin moron! That can't be a tag!")
             return
-
-        if ctx.guild is None:
-            return await ctx.send("Uh oh! You friccin moron! You can't use tags in DM!")
 
         valid_tags = self.getservertags(ctx.guild.id)
         names = [t.name for t in valid_tags]
@@ -457,15 +444,13 @@ class Tags():
             self.dump_tags()
             await ctx.send("Tag deleted!")
 
+    @commands.guild_only()
     @tag.command(brief="Delete a tag you own!")
     async def nuke(self, ctx, name: str):
 
         if name in self.banned_tags:
             await ctx.send("Uh oh! You friccin moron! That can't be a tag!")
             return
-
-        if ctx.guild is None:
-            return await ctx.send("Uh oh! You friccin moron! You can't use tags in DM!")
 
 
         if ctx.author.id != 137001076284063744:
@@ -487,12 +472,9 @@ class Tags():
             self.dump_tags()
             await ctx.send("Tag deleted!")
 
+    @commands.guild_only()
     @tag.command(brief="Get info on a tag!")
     async def info(self,ctx, name : str):
-
-        if ctx.guild is None: 
-            return await ctx.send("Uh oh! You friccin moron! You can't use tags in DM!")
-
         if name in self.banned_tags:
             await ctx.send("Uh oh! You friccin moron! That can't be a tag!")
             return

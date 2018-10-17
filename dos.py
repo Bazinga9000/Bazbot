@@ -371,15 +371,13 @@ class DosGame():
         return game.players[[x.id for x in game.players].index(id)]
 
     @commands.group(brief="Dos (the card game)")
+    @commands.guild_only()
     async def dos(self,ctx):
         try:
             x = self.pdb[ctx.guild.id]
         except:
             self.pdb[ctx.guild.id] = {}
 
-
-        if ctx.guild is None:
-            return await ctx.send("Uh oh! You friccin moron! You can't use this command in DMs!")
 
     @dos.command()
     async def create(self,ctx,*threshold):

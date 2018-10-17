@@ -191,6 +191,7 @@ class UnoGame():
     def getplayer(self,game,id):
         return game.players[[x.name for x in game.players].index(id)]
 
+    @commands.guild_only()
     @commands.group(brief="Uno (the card game)")
     async def uno(self,ctx):
         try:
@@ -198,9 +199,6 @@ class UnoGame():
         except:
             self.pdb[ctx.guild.id] = {}
 
-
-        if ctx.guild is None:
-            return await ctx.send("Uh oh! You friccin moron! You can't use this command in DMs!")
 
     @uno.command()
     async def create(self,ctx,*threshold):

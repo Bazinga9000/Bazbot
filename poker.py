@@ -197,15 +197,13 @@ class PokerGame():
     def getplayer(self, game, id):
         return game.players[[x.id for x in game.players].index(id)]
 
+    @commands.guild_only()
     @commands.group(brief="Poker (5 Card Draw)")
     async def poker(self, ctx):
         try:
             x = self.pdb[ctx.guild.id]
         except:
             self.pdb[ctx.guild.id] = {}
-
-        if ctx.guild is None:
-            return await ctx.send("Uh oh! You friccin moron! You can't use this command in DMs!")
 
         m.get_amount(ctx.author.id) #assure they have money
 
