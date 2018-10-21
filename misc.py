@@ -1085,7 +1085,7 @@ class Misc():
 
         try:
             p = int(page)
-            if p < 1 or p > len(leaderboard)//10:
+            if p < 1 or p >= len(leaderboard)//10:
                 return await ctx.send("Uh oh! You friccin moron! That's an invalid Page!")
         except:
             return await ctx.send("Uh oh! You friccin moron! That's an invalid Page!")
