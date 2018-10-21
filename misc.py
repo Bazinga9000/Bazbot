@@ -1094,7 +1094,7 @@ class Misc():
         message += "```"
         await ctx.send(message)
 
-    @commands.guild_only()
+    @commands.check(lambda ctx: ctx.channel.id == 503624057380667394)
     @commands.cooldown(1,300,type=commands.BucketType.user)
     @commands.command(brief="A game of give and take",aliases=["gt"])
     async def givetake(self, ctx, option):
@@ -1112,7 +1112,7 @@ class Misc():
         if option.lower() == "give":
             potdelta = 1
             for i in range(self.givetakescore):
-                if random.randint(1,10) == 10:
+                if random.random() < 0.1:
                     potdelta += 1
             self.givetakescore += potdelta
             if potdelta == 1:
