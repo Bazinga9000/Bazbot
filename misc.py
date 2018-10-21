@@ -1094,7 +1094,7 @@ class Misc():
         message += "```"
         await ctx.send(message)
 
-    @commands.check(lambda ctx: ctx.channel.id == 503624057380667394)
+    @commands.check(lambda ctx: ctx.channel.id == 381950042770243584)
     @commands.cooldown(1,300,type=commands.BucketType.user)
     @commands.command(brief="A game of give and take",aliases=["gt"])
     async def givetake(self, ctx, option):
