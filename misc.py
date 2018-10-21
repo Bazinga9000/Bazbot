@@ -1075,20 +1075,28 @@ class Misc():
             return await ctx.send("You were snapped by Thanos.")
 
     @commands.command(brief="View the givetake stats")
-    async def gtstats(self, ctx):
+    async def gtstats(self, ctx, page=1):
         try:
             self.givetakeleaderboard[ctx.author.id]
         except:
             self.givetakeleaderboard[ctx.author.id] = 0
 
+        leaderboard = self.givetakeleaderboard.items()
+
+        try:
+            p = int(page)
+            if p < 1 or p > len(leaderboard)//10:
+                return await ctx.send("Uh oh! You friccin moron! That's an invalid Page!")
+        except:
+            return await ctx.send("Uh oh! You friccin moron! That's an invalid Page!")
         message = '**The Pot: {}**\n'.format(self.givetakescore)
 
-        leaderboard = self.givetakeleaderboard.items()
         leaderboard = sorted(leaderboard,key=lambda x: x[1],reverse=True)
         your_rank = 1 + [i[0] for i in leaderboard].index(ctx.author.id)
         message += "Your Rank: #{} (Score of {})\n".format(your_rank, self.givetakeleaderboard[ctx.author.id])
         message += "Top 10:\n```"
-        for q,i in enumerate(leaderboard[:10]):
+        for q in range(10*(p-1), 10*(p)):
+            i = leaderboard[q]
             message += "#{}, {} - {}\n".format(q+1, self.bot.get_user(i[0]), i[1])
 
         message += "```"
