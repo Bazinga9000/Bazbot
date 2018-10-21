@@ -1,6 +1,7 @@
 import discord
 from discord.ext import commands
 from sympy import *
+import numpy
 import hashlib
 import math
 import dice
@@ -1085,17 +1086,19 @@ class Misc():
 
         try:
             p = int(page)
-            if p < 1 or p >= len(leaderboard)//10:
+            if p < 1 or p > 1+len(leaderboard)//10:
                 return await ctx.send("Uh oh! You friccin moron! That's an invalid Page!")
         except:
             return await ctx.send("Uh oh! You friccin moron! That's an invalid Page!")
+
+
         message = '**The Pot: {}**\n'.format(self.givetakescore)
 
         leaderboard = sorted(leaderboard,key=lambda x: x[1],reverse=True)
         your_rank = 1 + [i[0] for i in leaderboard].index(ctx.author.id)
         message += "Your Rank: #{} (Score of {})\n".format(your_rank, self.givetakeleaderboard[ctx.author.id])
         message += "Top 10:\n```"
-        for q in range(10*(p-1), 10*(p)):
+        for q in range(10*(p-1), min(10*(p),len(leaderboard))):
             i = leaderboard[q]
             message += "#{}, {} - {}\n".format(q+1, self.bot.get_user(i[0]), i[1])
 
@@ -1118,10 +1121,7 @@ class Misc():
             return await ctx.send(emsg)
 
         if option.lower() == "give":
-            potdelta = 1
-            for i in range(self.givetakescore):
-                if random.random() < 0.1:
-                    potdelta += 1
+            potdelta = 1 + numpy.random.binomial(self.givetakescore, 0.1)
             self.givetakescore += potdelta
             if potdelta == 1:
                 await ctx.send("You have given the pot a point! It currently stands at {}!".format(self.givetakescore))
