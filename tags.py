@@ -359,7 +359,7 @@ class Tags():
 
     @commands.guild_only()
     @tag.command(brief="List tags!")
-    async def list(self, ctx, page : int):
+    async def list(self, ctx, page : int = 1):
         valid_tags = self.getservertags(ctx.guild.id)
 
         if page < 1:
