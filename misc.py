@@ -14,9 +14,11 @@ import warnings
 import itertools
 import time
 import datetime
+import io
 from io import TextIOWrapper, BytesIO
 import pickle
 import re
+import ipa_to_onyanthu as onyan
 
 warnings.simplefilter('error', Image.DecompressionBombWarning)
 
@@ -1137,6 +1139,23 @@ class Misc():
         with open("givetake.pkl","wb") as f:
             pickle.dump((self.givetakescore,self.givetakeleaderboard),f)
 
+
+    @commands.command(aliases=["onyan"],brief="Convert IPA text into Onyanthu's orthography.")
+    async def onyanthu(self, ctx, *, ipa):
+        stripped = ipa
+        stripped.replace("/","")
+
+        for i in onyan.character_translations:
+            stripped.replace(i, onyan.character_translations[i])
+
+
+        image = onyan.render(stripped)
+
+        file = io.BytesIO()
+        image.save(file, format="PNG")
+        file.seek(0)
+
+        return await ctx.send(file=discord.File(file, filename="onyanthu.png"))
 
     '''
     @commands.command(brief="Talk to the DeepTWOW Bots!")
