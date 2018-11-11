@@ -15,6 +15,7 @@ import scipy
 from scipy import special
 from scipy import misc
 from decimal import Decimal
+import asyncio
 ureg = pint.UnitRegistry("./units.txt")
 
 
@@ -377,14 +378,14 @@ class Stem():
                     a = stack.pop()
                     b = stack.pop()
                     try:
-                        stack.append(b ** a)
+                        stack.append(math.pow(b,a))
                     except:
                         stack.append(cmath.exp(float(a) * cmath.log(b)))
 
                 if token in ["^-","**-"]:
                     a = stack.pop()
                     b = stack.pop()
-                    stack.append(b ** -a)
+                    stack.append(math.pow(b,-a))
 
                 if token == "sqrt":
                     a = stack.pop()
@@ -826,7 +827,10 @@ class Stem():
         #await ctx.send(" ".join([str(i) for i in rpn])) #PRINT RPN
 
         try:
-            answer = self.parserpn(rpn)
+            loop = asyncio.get_event_loop()
+            coroutine = loop.run_in_executor(None, self.parserpn, rpn)
+            task = asyncio.wait_for(coroutine, 5)
+            answer = await task
 
             if len(answer) == 1:
                 await ctx.send(self.format_answer(answer.pop()))
@@ -834,7 +838,8 @@ class Stem():
                 await ctx.send("**More than one number left on the stack.**\n" + ", ".join([self.format_answer(i) for i in answer]))
             else:
                 await ctx.send("**Nothing on the stack.**")
-
+        except asyncio.TimeoutError:
+            await ctx.send("Uh oh! You friccin moron! That took too long to evaluate!")
         except ZeroDivisionError:
             await ctx.send("Uh oh! You friccin moron! You tried to divide by zero!")
         except OverflowError:

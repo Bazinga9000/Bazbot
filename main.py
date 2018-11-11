@@ -5,7 +5,7 @@ from io import TextIOWrapper, BytesIO
 import sys,traceback
 import subprocess
 import asyncio
-
+import concurrent
 
 
 owner = lambda ctx: ctx.author.id == 137001076284063744
@@ -52,6 +52,7 @@ async def on_ready():
     print(bcolors.OKBLUE + "User: " + bot.user.name + bcolors.ENDC)
     print(bcolors.OKBLUE + "ID: " + str(bot.user.id) + bcolors.ENDC)
     print(bcolors.OKBLUE + "Prefix: " + bot.command_prefix + bcolors.ENDC)
+
 
 @bot.event
 async def on_message(message):

@@ -5,6 +5,8 @@ import shlex
 import random
 import pickle
 import numpy
+import math
+import asyncio
 import sys, traceback
 
 class Tag:
@@ -190,7 +192,7 @@ class Tag:
                     elif p == "^":
                         a = stack.pop()
                         b = stack.pop()
-                        r = b**a
+                        r = math.pow(b,a)
                     elif p == "%":
                         a = stack.pop()
                         b = stack.pop()
@@ -332,7 +334,11 @@ class Tags():
         else:
             tag = valid_tags[index]
             tag.usecount += 1
-            await ctx.send(tag.get(ctx))
+            loop = asyncio.get_event_loop()
+            coroutine = loop.run_in_executor(None, tag.get, ctx)
+            task = asyncio.wait_for(coroutine, 5)
+            answer = await task
+            await ctx.send(answer)
             self.dump_tags()
 
     @commands.guild_only()
