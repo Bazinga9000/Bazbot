@@ -337,9 +337,12 @@ class Tags():
             loop = asyncio.get_event_loop()
             coroutine = loop.run_in_executor(None, tag.get, ctx)
             task = asyncio.wait_for(coroutine, 5)
-            answer = await task
-            await ctx.send(answer)
-            self.dump_tags()
+            try:
+                answer = await task
+                await ctx.send(answer)
+                self.dump_tags()
+            except asyncio.TimeoutError:
+                await ctx.send("Uh oh! You friccin moron! That took too long!")
 
     @commands.guild_only()
     @tag.command(brief="Create a tag!")
