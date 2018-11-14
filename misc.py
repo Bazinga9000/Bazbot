@@ -1146,7 +1146,7 @@ class Misc():
         stripped.replace("/","")
 
         for i in onyan.character_translations:
-            stripped.replace(i, onyan.character_translations[i])
+            stripped = stripped.replace(i, onyan.character_translations[i])
 
 
         image = onyan.render(stripped)
