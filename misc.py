@@ -19,6 +19,7 @@ from io import TextIOWrapper, BytesIO
 import pickle
 import re
 import ipa_to_onyanthu as onyan
+import regex
 
 warnings.simplefilter('error', Image.DecompressionBombWarning)
 
@@ -1157,6 +1158,45 @@ class Misc():
 
         return await ctx.send(file=discord.File(file, filename="onyanthu.png"))
 
+    @commands.command(brief="Convert the current time into Onyanthu Base36-Time")
+    async def otime(self, ctx, *, clocktime):
+        emojis = "<:onyan0:510866552543903764> <:onyan1:510866552107827221> <:onyan2:510866552195776562> <:onyan3:510866552250302464> <:onyan4:510866552199970832> <:onyan5:510866552015421461> <:onyan6:510866555849015318> <:onyan7:510866552271142954> <:onyan8:510866552074010625> <:onyan9:510866552300503050> <:onyan10:510866552174804995> <:onyan11:510866552086593537> <:onyan12:510866552393039874> <:onyan13:510866552254365696> <:onyan14:510866552346640397> <:onyan15:510866551868489729> <:onyan16:510866552263016449> <:onyan17:510866551986061344> <:onyan18:510866552476794880> <:onyan19:510866552283987989> <:onyan20:510866552019746858> <:onyan21:510866551935598593> <:onyan22:510866552321605643> <:onyan23:510866552489508874> <:onyan24:510866552166285363> <:onyan25:510866552300503079> <:onyan26:510866552300634132> <:onyan27:510866552300765184> <:onyan28:510866552380456960> <:onyan29:510866552136925186> <:onyan30:510866552250433538> <:onyan31:510866552506023947> <:onyan32:510866552329863179> <:onyan33:510866552417943563> <:onyan34:510866552581652520> <:onyan35:510866552069947413>"
+        emojis = emojis.split(" ")
+
+        units = regex.match(r"([0-9:.h]*) ?([ap]?)m?",clocktime.lower())
+
+        ctime = units[1].replace(".",":").replace("h",":").split(":")
+        period = units[2]
+
+        hours = (12 if period == "p" else 0) + int(ctime[0])
+        minutes = int(ctime[1])
+
+        seconds = int(ctime[2]) if len(ctime) >= 3 else 0
+
+        if hours > 24 or minutes > 59 or seconds > 59:
+            return await ctx.send("Uh oh! You friccin moron! That's an invalid time!")
+
+
+        totalseconds = seconds + 60*minutes + 3600*hours
+
+        onyanseconds = round(totalseconds * (46656/86400))
+        oseconds = onyanseconds
+        digits = []
+        while onyanseconds != 0:
+            digits.append(onyanseconds % 36)
+            onyanseconds //= 36
+
+        digits = digits[::-1]
+
+        dstring = ":".join(str(i) for i in digits)
+        flag = clocktime[-1]
+
+        if flag == "o":
+            dstring = "".join(emojis[i] for i in digits)
+
+        await ctx.send("The time is " + dstring)
+        #await ctx.send([clocktime,units.group(1,2),period,hours,minutes,seconds,totalseconds,onyanseconds])
+
     '''
     @commands.command(brief="Talk to the DeepTWOW Bots!")
     @commands.cooldown(1,8,type=commands.BucketType.user)
@@ -1192,3 +1232,9 @@ class Misc():
 
 def setup(bot):
     bot.add_cog(Misc(bot))
+
+
+
+'''
+
+'''
