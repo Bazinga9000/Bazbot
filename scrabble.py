@@ -351,7 +351,6 @@ class ScrabbleGame():
 
         pos = opos
 
-        word = []
 
         for i in tokens:
             if game.tileboard[pos[0]][pos[1]] is None:
@@ -359,8 +358,41 @@ class ScrabbleGame():
             game.tileboard[pos[0]][pos[1]] = i
             pos = (pos[0] + delta[0], pos[1] + delta[1])
 
-            word.append((pos,i[1],i[0]))
+            #word.append((pos,i[1],i[0]))
 
+        backwards = (-delta[0],-delta[1])
+
+        pos = opos
+
+        #extrapolate current word
+        word = []
+
+        first_tile = game.tileboard[pos[0]][pos[1]]
+        word = [(pos, first_tile[1], first_tile[0])]
+
+        spos = (pos[0] + delta[0], pos[1] + delta[1])
+        # scan forward
+        while True:
+            if not (0 <= spos[0] < len(game.tileboard)) or not (0 <= spos[1] < len(game.tileboard)):
+                break
+            if game.tileboard[spos[0]][spos[1]] is None:
+                break
+
+            t = game.tileboard[spos[0]][spos[1]]
+            word.append((spos, t[1], t[0]))
+            spos = (spos[0] + delta[0], spos[1] + delta[1])
+
+        # scan backwards
+        spos = (pos[0] + backwards[0], pos[1] + backwards[1])
+        while True:
+            if not (0 <= spos[0] < len(game.tileboard)) or not (0 <= spos[1] < len(game.tileboard)):
+                break
+            if game.tileboard[spos[0]][spos[1]] is None:
+                break
+
+            t = game.tileboard[spos[0]][spos[1]]
+            word = [(spos, t[1], t[0])] + word
+            spos = (spos[0] + backwards[0], spos[1] + backwards[1])
         words_to_score.append(word)
 
         pos = opos
@@ -368,6 +400,7 @@ class ScrabbleGame():
         neg_antidelta = (-delta[1],-delta[0])
         pos_antidelta = (delta[1],delta[0])
 
+        #extrapolate new words
         for i in tokens:
             if pos in new_placements:
                 word = [(pos,i[1],i[0])]
