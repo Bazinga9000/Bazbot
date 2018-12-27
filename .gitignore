@@ -9,4 +9,5 @@ backups/*
 output.png
 cc.py
 ccimages/*
+db/*
 *.log

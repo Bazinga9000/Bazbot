@@ -1188,11 +1188,13 @@ class Misc():
 
         digits = digits[::-1]
 
-        dstring = ":".join(str(i) for i in digits)
+        dstring = ":".join(str(i//6) + str(i%6) for i in digits)
         flag = clocktime[-1]
 
         if flag == "o":
             dstring = "".join(emojis[i] for i in digits)
+        if flag == "d":
+            dstring = ":".join(str(i) for i in digits)
 
         await ctx.send("The time is " + dstring)
         #await ctx.send([clocktime,units.group(1,2),period,hours,minutes,seconds,totalseconds,onyanseconds])
