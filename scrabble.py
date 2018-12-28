@@ -467,9 +467,8 @@ class ScrabbleGame():
 
 
     def score_word(self,game,word,newly_placed):
-        word_multiplier = 1
+        word_multiplier = 0
         score = 0
-
         for letter in word:
             ls = letter[1]
             pos = letter[0]
@@ -478,12 +477,12 @@ class ScrabbleGame():
                 if tile_bonus is not None:
                     if tile_bonus[1] in ["W","X"]:
                         word_multiplier += tile_bonus[0]
-                    elif tile_bonus[0] in ["L"]:
+                    elif tile_bonus[1] in ["L"]:
                         ls *= tile_bonus[0]
 
             score += ls
 
-        score *= word_multiplier
+        score *= max(word_multiplier,1)
         return score
 
 def setup(bot):
