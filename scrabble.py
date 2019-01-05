@@ -275,7 +275,7 @@ class ScrabbleGame():
         regex = "|".join([i.replace("[","\[").replace("]","\]") for i in components]) + "|[^ ]"
         tokens = re.findall(regex,tiles)
         try:
-            tokens = [(x,game.valuemap[x],False) if not x.startswith("[") else (x[1:-1],0,True) for x in tokens]
+            tokens = [(x,game.valuemap[x],False) if not x.startswith("[") else (x[1:-1],game.blankvaluemap[x],True) for x in tokens]
         except KeyError:
             return await ctx.send("Uh oh! You friccin moron! You played a letter not in the distribution!")
 
