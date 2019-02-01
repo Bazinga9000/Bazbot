@@ -1199,6 +1199,44 @@ class Misc():
         await ctx.send("The time is " + dstring)
         #await ctx.send([clocktime,units.group(1,2),period,hours,minutes,seconds,totalseconds,onyanseconds])
 
+    @commands.command(brief="Create a minesweeper game in spoilers")
+    @commands.cooldown(1,30,type=commands.BucketType.user)
+    async def mines(self,ctx,height : int,width : int,mines : int):
+        if mines > width*height:
+            return await ctx.send("Uh oh! You friccin moron! That's too many mines!")
+
+        if width > 40 or height > 40:
+            return await ctx.send("Uh oh! You friccin moron! That's too big!")
+
+        points = [(i,j) for i in range(width) for j in range(height)]
+        random.shuffle(points)
+        points = points[:mines]
+
+        values = [":zero:",":one:",":two:",":three:",":four:",":five:",":six:",":seven:",":eight:"]
+
+        string = "Minesweeper: {}×{}, {}:bomb:\n".format(height,width,mines)
+
+        neighbors = lambda x, y: [(x-1,y-1),(x-1,y),(x-1,y+1),(x,y-1),(x,y+1),(x+1,y-1),(x+1,y),(x+1,y+1)]
+
+        for i in range(height):
+            for j in range(width):
+                if (i,j) in points:
+                    string += "||:bomb:||"
+                else:
+                    count = 0
+                    n = neighbors(i,j)
+
+                    for p in points:
+                        if p in n:
+                            count += 1
+
+                    string += "||{}||".format(values[count])
+            string += "\n"
+
+
+        await ctx.send(string)
+
+
     '''
     @commands.command(brief="Talk to the DeepTWOW Bots!")
     @commands.cooldown(1,8,type=commands.BucketType.user)
