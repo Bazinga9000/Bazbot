@@ -1208,7 +1208,7 @@ class Misc():
         if width > 40 or height > 40:
             return await ctx.send("Uh oh! You friccin moron! That's too big!")
 
-        points = [(i,j) for i in range(width) for j in range(height)]
+        points = [(i,j) for i in range(height) for j in range(width)]
         random.shuffle(points)
         points = points[:mines]
 
