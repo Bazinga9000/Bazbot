@@ -88,8 +88,9 @@ class CheshGame():
         game.selfgame = True
 
         await ctx.send("Game created!")
-        await ctx.send(file=discord.File(img.game_image(game), filename="board.png"))
-
+        m = await ctx.send(file=discord.File(img.game_image(game), filename="board.png"))
+        game.urls.append(m.attachments[0].url)
+        return m
 
     @chesh.command(brief="Create a game played through two accounts")
     async def create(self, ctx, board_height : int, board_width : int, *, flags=""):
@@ -131,8 +132,9 @@ class CheshGame():
             game.player_names[1] = ctx.author.name
             game.started = True
             await ctx.send("You have joined " + user + "'s Game!")
-            return await ctx.send(file=discord.File(img.game_image(game), filename="board.png"))
-
+            m = await ctx.send(file=discord.File(img.game_image(game), filename="board.png"))
+            game.urls.append(m.attachments[0].url)
+            return m
 
     @chesh.command()
     async def leave(self, ctx):
@@ -210,8 +212,9 @@ class CheshGame():
             game.selected_piece = pos
             game.valid_moves = piece.move(pos,game.board)
 
-            return await ctx.send(file=discord.File(img.game_image(game), filename="board.png"))
-
+            m = await ctx.send(file=discord.File(img.game_image(game), filename="board.png"))
+            game.urls.append(m.attachments[0].url)
+            return m
 
     @chesh.command()
     async def move(self, ctx, *positions):
@@ -283,11 +286,14 @@ class CheshGame():
         game.turn = (game.turn + 1)%2
 
         await ctx.send("Piece Moved!")
-        await ctx.send(file=discord.File(img.game_image(game), filename="board.png"))
+        m = await ctx.send(file=discord.File(img.game_image(game), filename="board.png"))
+        game.urls.append(m.attachments[0].url)
 
         if 0 in game.healths:
             for i in game.players:
                 self.pdb[ctx.channel.id].pop(i.id, None)
+
+            return await ctx.send(file=discord.File(img.game_gif(game), filename="game.gif"))
 
     @chesh.command(aliases=["info","board"])
     async def status(self, ctx):
@@ -301,6 +307,17 @@ class CheshGame():
 
         return await ctx.send(file=discord.File(img.game_image(game), filename="board.png"))
 
+    @chesh.command()
+    async def gif(self, ctx, ms_delay=250):
+        if not self.ingame(ctx):
+            return await ctx.send("Uh oh! You friccin moron! You aren't in a game!")
+
+        game = self.pdb[ctx.channel.id][ctx.author.id]
+
+        if game.started == False:
+            return await ctx.send("Uh oh! You friccin moron! The game hasn't started yet!")
+
+        return await ctx.send(file=discord.File(img.game_gif(game,int(ms_delay)), filename="game.gif"))
 
     @chesh.command(brief="Transmute a piece into another [only works if the `debug` flag is enabled]")
     async def inject(self, ctx, position, newpiece):
@@ -351,12 +368,12 @@ class CheshGame():
     @chesh.command(brief="Lists all flags usable in b9!chesh.")
     async def flags(self,ctx):
         message = '''
-        `orows=<number>` - Sets the number of occupied rows (No more than a quarter the board height)
-        `noroyals` - Removes all royals from the game
-        `monarchy` - Only capturing royals deals damage (1 per royal)
-        `health=<number>` - Sets the started health to the specified number (No more than the total value of all pieces)
-        `nofatigue` - Disables fatigue, allowing a piece to be moved arbitrarily many times repeatedly
-        `purerandom` - Changes piece generation to be completely random, as opposed to placing stronger pieces towards the back.
+`orows=<number>` - Sets the number of occupied rows (No more than a quarter the board height)
+`noroyals` - Removes all royals from the game
+`monarchy` - Only capturing royals deals damage (1 per royal)
+`health=<number>` - Sets the started health to the specified number (No more than the total value of all pieces)
+`nofatigue` - Disables fatigue, allowing a piece to be moved arbitrarily many times repeatedly
+`purerandom` - Changes piece generation to be completely random, as opposed to placing stronger pieces towards the back.
         '''
 
         await ctx.send(message)

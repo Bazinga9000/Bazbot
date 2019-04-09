@@ -1,6 +1,8 @@
 from PIL import Image, ImageDraw, ImageChops, ImageFont
 import hsluv
 import io
+import requests
+from io import BytesIO
 import math
 import random
 
@@ -203,6 +205,39 @@ def game_image(game,moves=[]):
 
     file = io.BytesIO()
     image.save(file, format="PNG")
+    file.seek(0)
+    return file
+
+
+
+def image_from_url(url):
+    try:
+        response = requests.get(url)
+        return Image.open(BytesIO(response.content))
+    except:
+        return None
+
+def game_gif(game,framerate=250):
+    images = []
+
+    for url in game.urls:
+        i = image_from_url(url)
+        if i is not None:
+            images.append(i)
+
+
+    for i in range(7):
+        images.append(images[-1])
+
+
+    file = io.BytesIO()
+    images[0].save(file,
+                   format="GIF",
+                   save_all=True,
+                   append_images=images[1:],
+                   duration=framerate,
+                   loop=0)
+
     file.seek(0)
     return file
 

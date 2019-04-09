@@ -41,6 +41,8 @@ class Chesh:
         self.turn = 0
         self.ply = 0
 
+        self.urls = []
+
         self.selfgame = False
 
         # Process Flags to Override things
