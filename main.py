@@ -223,6 +223,11 @@ x, t, z, nu = symbols('x t z nu')
 e = math.e
 pi = math.pi
 
+@bot.command(name="playing",brief="change the playing status")
+@commands.check(owner)
+async def playing(ctx,*,name : str):
+    await bot.change_presence(activity=discord.Game(name))
+    await ctx.send("Changed playing status to {}".format(name))
 
 @bot.command(name="eval",brief="evaluate some code")
 @commands.check(owner)
