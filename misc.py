@@ -52,7 +52,7 @@ wordinit = compressalphabet[340:680]
 wordterm = compressalphabet[:340]
 spaceterm = compressalphabet[680:1020]
 
-class Misc():
+class Misc(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.ratel = lambda x: int(hashlib.sha256(x.lower().encode('utf-8')).hexdigest(),16) % 101

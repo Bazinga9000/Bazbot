@@ -5,7 +5,7 @@ import textcommands as c
 import importlib
 
 
-class Text():
+class Text(commands.Cog):
 
 
     def __init__(self, bot):

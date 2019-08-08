@@ -178,7 +178,7 @@ class Poker():
 
 
 
-class PokerGame():
+class PokerGame(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.games = []

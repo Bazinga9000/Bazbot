@@ -153,7 +153,7 @@ class BadType(Exception):
         return str(self.op + " doesn't support `" + str(self.typemap[self.type]) + "`! (You gave it `" + str(self.value) + "`)")
 
 
-class Stem():
+class Stem(commands.Cog):
     def __init__(self,bot):
         self.bot = bot
 

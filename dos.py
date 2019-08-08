@@ -351,7 +351,7 @@ class Dos():
         self.players = [x for x in self.players if x.score < self.threshold]
 
 
-class DosGame():
+class DosGame(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.games = []

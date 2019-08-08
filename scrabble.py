@@ -9,7 +9,7 @@ import regex as re
 flatten = lambda l: [item for sublist in l for item in sublist]
 
 
-class ScrabbleGame():
+class ScrabbleGame(commands.Cog):
     def __init__(self, bot):
         importlib.reload(mech)
         self.bot = bot

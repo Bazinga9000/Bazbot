@@ -172,7 +172,7 @@ class Uno():
         self.players = [x for x in self.players if x.score < self.threshold]
 
 
-class UnoGame():
+class UnoGame(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.games = []

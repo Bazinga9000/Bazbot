@@ -13,7 +13,7 @@ class Player():
         self.host = host
 
 
-class CheshGame():
+class CheshGame(commands.Cog):
     def __init__(self, bot):
         importlib.reload(mech)
         importlib.reload(img)

@@ -82,7 +82,7 @@ class ABG():
             piecelist[r1][c1] = piece
             self.board = ["".join(i) for i in piecelist]
 
-class BoardGame():
+class BoardGame(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.games = []

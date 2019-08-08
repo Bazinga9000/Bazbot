@@ -51,7 +51,7 @@ def set_amount(id, amount):
     money[id] = amount
 
 
-class Money():
+class Money(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.money = get_money()
