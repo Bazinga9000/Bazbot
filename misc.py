@@ -1237,6 +1237,23 @@ class Misc(commands.Cog):
         await ctx.send(string)
 
 
+    @commands.command(brief="Convert between multiples of the speed of light and warp factor.")
+    async def warpspeed(self,ctx,unit : str,value : float):
+        w_to_c = lambda x: x**(10/3) if x <= 9 else (9**(10/3))*((10-x)**(-10/27))
+        c_to_w = lambda x: x**(3/10) if x <= 9**(10/3) else 10 - ((9**9)*(x**(-27/10)))
+
+
+        if unit == "c":
+            return await ctx.send("{}c is equal to Warp Factor {}".format(value,c_to_w(value)))
+        elif unit == "w":
+            if value > 10:
+                return await ctx.send("Uh oh! You friccin moron! That's an invalid warp factor!")
+            else:
+                return await ctx.send("Warp Factor {} is equal to {}c".format(value,w_to_c(value)))
+        else:
+            return await ctx.send("Uh oh! You friccin moron! The unit must be either `c` or `w`!")
+
+
     '''
     @commands.command(brief="Talk to the DeepTWOW Bots!")
     @commands.cooldown(1,8,type=commands.BucketType.user)
