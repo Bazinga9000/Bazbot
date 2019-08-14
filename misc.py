@@ -1248,6 +1248,8 @@ class Misc(commands.Cog):
         elif unit == "w":
             if value > 10:
                 return await ctx.send("Uh oh! You friccin moron! That's an invalid warp factor!")
+            elif value == 10:
+                return await ctx.send("Warp Factor 10.0 is equal to ∞c")
             else:
                 return await ctx.send("Warp Factor {} is equal to {}c".format(value,w_to_c(value)))
         else:
