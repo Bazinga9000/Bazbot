@@ -1258,6 +1258,11 @@ class Misc(commands.Cog):
 
     @commands.command(brief="Generates a scoring system where each rank gets differing numbers of points.")
     async def pointsystem(self,ctx, numplayers : int):
+        if numplayers > 500:
+            return await ctx.send("Uh oh! You friccin moron! That's too many players!")
+
+        if numplayers < 2:
+            return await ctx.send("Uh oh! You friccin moron! That's too few players!")
         scores = []
         current_score = -1
 
