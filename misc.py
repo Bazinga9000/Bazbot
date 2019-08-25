@@ -1256,6 +1256,40 @@ class Misc(commands.Cog):
             return await ctx.send("Uh oh! You friccin moron! The unit must be either `c` or `w`!")
 
 
+    @commands.command(brief="Generates a scoring system where each rank gets differing numbers of points.")
+    async def pointsystem(self,ctx, numplayers : int):
+        scores = []
+        current_score = -1
+
+        halves = int(math.log(numplayers, 2))
+
+        for i in range(numplayers):
+            current_score += 1
+
+            for j in range(2, halves):
+                if i / numplayers >= (1 - 1 / (2 ** j)):
+                    current_score += j - 1
+
+            if i == numplayers - 1:
+                current_score = int(current_score * 1.1)
+
+            scores.append(current_score)
+
+
+        if numplayers <= 12:
+            message = "**Score Distribution**```\n"
+            scores = scores[::-1]
+
+            for i in range(numplayers):
+                if scores[i] != 1:
+                    message += "#{} gets {} points\n".format(i+1,scores[i])
+                else:
+                    message += "#{} gets 1 point\n ".format(i+1)
+            message = message[:-1] + "```"
+            await ctx.send(message)
+        else:
+            message = "**Score Distribution**\n```" + " ".join(str(i) for i in scores[::-1]) + "\n```"
+            await ctx.send(message)
     '''
     @commands.command(brief="Talk to the DeepTWOW Bots!")
     @commands.cooldown(1,8,type=commands.BucketType.user)
