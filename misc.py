@@ -1284,7 +1284,7 @@ class Misc(commands.Cog):
                 if scores[i] != 1:
                     message += "#{} gets {} points\n".format(i+1,scores[i])
                 else:
-                    message += "#{} gets 1 point\n ".format(i+1)
+                    message += "#{} gets 1 point\n".format(i+1)
             message = message[:-1] + "```"
             await ctx.send(message)
         else:
