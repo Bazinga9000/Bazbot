@@ -1360,9 +1360,6 @@ class Misc(commands.Cog):
             pb = self.individual_top(ctx.author.id)
 
             dump_flag = False
-
-            print(pb,self.get_name(pb[1]))
-
             if current_score > pb[0]:
                 name = self.get_name(pb[1])
                 embed.add_field(name="You beat your personal best!", value="Previously {} (Set on {})".format(pb[0],name), inline=True)
