@@ -20,6 +20,7 @@ import pickle
 import re
 import ipa_to_onyanthu as onyan
 import regex
+import hsluv
 
 warnings.simplefilter('error', Image.DecompressionBombWarning)
 
@@ -66,6 +67,20 @@ class Misc(commands.Cog):
         except:
             self.givetakescore = 0
             self.givetakeleaderboard = {}
+
+
+        try:
+            with open("battle.pkl","rb") as f:
+                p = pickle.load(f)
+                self.battle_global_best = p[0]
+                self.battle_individual_leaderboard = p[1]
+                self.battle_server_leaderboard = p[2]
+
+        except:
+            self.battle_global_best = (0,137001076284063744,382927393045741568)
+            self.battle_individual_leaderboard = {}
+            self.battle_server_leaderboard = {}
+
 
     def crop(self, im, new_width, new_height):
         width, height = im.size   # Get dimensions
@@ -435,7 +450,7 @@ class Misc(commands.Cog):
             if args[0].lower() in cats:
                 cog_name = cats[args[0].lower()]
                 d = 'Commands in category **`{}`**:\n'.format(cog_name)
-                cmds = self.bot.get_cog_commands(cog_name)
+                cmds = self.bot.get_cog(cog_name).get_commands()
                 for cmd in sorted(list(cmds), key=lambda x: x.name):
                     d += '\n  `{}{}`'.format(ctx.prefix, cmd.name)
 
@@ -1295,6 +1310,115 @@ class Misc(commands.Cog):
         else:
             message = "**Score Distribution**\n```" + " ".join(str(i) for i in scores[::-1]) + "\n```"
             await ctx.send(message)
+
+
+    def dump_battles(self):
+        with open("battle.pkl","wb+") as f:
+            pickle.dump([self.battle_global_best, self.battle_individual_leaderboard, self.battle_server_leaderboard],f)
+
+    def individual_top(self,id):
+        try:
+            return self.battle_individual_leaderboard[id]
+        except:
+            self.battle_individual_leaderboard[id] = (0,0)
+            self.dump_battles()
+            return (0,0)
+
+    def server_top(self,id):
+        try:
+            return self.battle_server_leaderboard[id]
+        except:
+            self.battle_server_leaderboard[id] = (0,0)
+            self.dump_battles()
+            return (0,0)
+
+    def get_name(self,id):
+        try:
+            return self.bot.get_user(id).name
+        except:
+            try:
+                return self.bot.get_guild(self.battle_global_best[2]).name
+            except:
+                return "unknown"
+
+    @commands.guild_only()
+    @commands.command(brief="Battle it out over the outcome of a pareto distribution.")
+    @commands.cooldown(1,5,type=commands.BucketType.user)
+    async def battle(self, ctx, *args):
+        if len(args) == 0:
+            current_score = numpy.random.pareto(1)
+
+            hue = round(300 * (current_score / (current_score + 100)))
+
+            color = hsluv.hsluv_to_rgb((hue,100,70))
+            color = tuple(int(255*i) for i in color)
+            color = discord.Colour.from_rgb(*color)
+
+            embed = discord.Embed(title=":game_die: :crossed_swords: ", color=color)
+            embed.add_field(name="Your Result:", value=str(current_score), inline=False)
+
+            pb = self.individual_top(ctx.author.id)
+
+            dump_flag = False
+
+            if current_score > pb[0]:
+                name = self.get_name(pb[1])
+                embed.add_field(name="You beat your personal best!", value="Previously {} (Set on {})".format(pb[0],name), inline=True)
+                self.battle_individual_leaderboard[ctx.author.id] = (current_score, ctx.guild.id)
+                dump_flag = True
+
+            sb = self.server_top(ctx.guild.id)
+            if current_score > sb[0]:
+                name = self.get_name(sb[1])
+
+                embed.add_field(name="You beat the server's high score!",
+                                value="Previously {} (Set by {})".format(sb[0],name), inline=True)
+                self.battle_server_leaderboard[ctx.guild.id] = (current_score, ctx.author.id)
+                dump_flag = True
+
+            if current_score > self.battle_global_best[0]:
+                uname = self.get_name(self.battle_global_best[1])
+                sname = self.get_name(self.battle_global_best[2])
+
+                embed.add_field(name="You beat the All-Time High Score!",
+                                value="Previously {} (Set by {} on {})".format(sb[0],uname,sname),
+                                inline=False)
+
+                self.battle_global_best = (current_score, ctx.author.id, ctx.guild.id)
+                dump_flag = True
+
+            if dump_flag: self.dump_battles()
+
+            await ctx.send(embed=embed)
+        else:
+            if args[0] == "help":
+                message = '''```
+                b9!battle - roll the die and see what happens
+                b9!battle help - shows this message
+                b9!battle leaderboard - shows the leaderboard across all of Discord.
+                (note: only the highest score of each person is present.)
+                ``` 
+                '''
+
+                await ctx.send(message)
+            if args[0] == "leaderboard":
+                leaderboard = sorted(self.battle_individual_leaderboard.items(), key = lambda x: x[1][0], reverse=True)
+
+                rank = 1 + leaderboard.index((ctx.author.id, self.battle_individual_leaderboard[ctx.author.id]))
+
+                message = '''**Leaderboard**\n```\n'''
+                for i in range(min(len(leaderboard),20)):
+                    message += "#{} - {} - {}\n".format(i+1, self.get_name(leaderboard[i][0]),leaderboard[i][1][0])
+
+                if rank >= 21:
+                    message += "...\n"
+                    message += "#{} - {} - {}\n".format(rank, self.get_name(leaderboard[rank-1][0]),leaderboard[rank-1][1][0])
+
+                message += "```"
+
+                await ctx.send(message)
+
+
     '''
     @commands.command(brief="Talk to the DeepTWOW Bots!")
     @commands.cooldown(1,8,type=commands.BucketType.user)
