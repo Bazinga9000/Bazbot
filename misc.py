@@ -1322,7 +1322,7 @@ class Misc(commands.Cog):
         except:
             self.battle_individual_leaderboard[id] = (0,0)
             self.dump_battles()
-            return (0,0)
+            return (0,"this should intentionally throw an exception")
 
     def server_top(self,id):
         try:
@@ -1330,14 +1330,14 @@ class Misc(commands.Cog):
         except:
             self.battle_server_leaderboard[id] = (0,0)
             self.dump_battles()
-            return (0,0)
+            return (0,"this should also throw an exception")
 
     def get_name(self,id):
         try:
             return self.bot.get_user(id).name
         except:
             try:
-                return self.bot.get_guild(self.battle_global_best[2]).name
+                return self.bot.get_guild(id).name
             except:
                 return "unknown"
 
@@ -1360,6 +1360,8 @@ class Misc(commands.Cog):
             pb = self.individual_top(ctx.author.id)
 
             dump_flag = False
+
+            print(pb,self.get_name(pb[1]))
 
             if current_score > pb[0]:
                 name = self.get_name(pb[1])
