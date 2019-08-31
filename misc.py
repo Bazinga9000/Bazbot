@@ -1389,7 +1389,7 @@ class Misc(commands.Cog):
 
             if dump_flag: self.dump_battles()
 
-            embed.set_footer(text="Rolled by {}".format(ctx.author.id))
+            embed.set_footer(text="Rolled by {}".format(self.get_name(ctx.author.id)))
             await ctx.send(embed=embed)
         else:
             if args[0] == "help":
