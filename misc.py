@@ -69,6 +69,7 @@ class Misc(commands.Cog):
             self.givetakeleaderboard = {}
 
 
+        #top
         try:
             with open("battle.pkl","rb") as f:
                 p = pickle.load(f)
@@ -80,6 +81,19 @@ class Misc(commands.Cog):
             self.battle_global_best = (0,137001076284063744,382927393045741568)
             self.battle_individual_leaderboard = {}
             self.battle_server_leaderboard = {}
+
+        #bottom
+        try:
+            with open("battle.pkl","rb") as f:
+                p = pickle.load(f)
+                self.battle_global_worst = p[3]
+                self.battle_individual_leaderboard_worst = p[4]
+                self.battle_server_leaderboard_worst = p[5]
+
+        except:
+            self.battle_global_worst = (0,137001076284063744,382927393045741568)
+            self.battle_individual_leaderboard_worst = {}
+            self.battle_server_leaderboard_worst = {}
 
 
     def crop(self, im, new_width, new_height):
@@ -1314,7 +1328,9 @@ class Misc(commands.Cog):
 
     def dump_battles(self):
         with open("battle.pkl","wb+") as f:
-            pickle.dump([self.battle_global_best, self.battle_individual_leaderboard, self.battle_server_leaderboard],f)
+            pickle.dump([self.battle_global_best, self.battle_individual_leaderboard, self.battle_server_leaderboard,
+                         self.battle_global_worst, self.battle_individual_leaderboard_worst,
+                         self.battle_server_leaderboard_worst],f)
 
     def individual_top(self,id):
         try:
@@ -1329,6 +1345,22 @@ class Misc(commands.Cog):
             return self.battle_server_leaderboard[id]
         except:
             self.battle_server_leaderboard[id] = (0,0)
+            self.dump_battles()
+            return (0,"this should also throw an exception")
+
+    def individual_bottom(self,id):
+        try:
+            return self.battle_individual_leaderboard_worst[id]
+        except:
+            self.battle_individual_leaderboard_worst[id] = (math.inf,0)
+            self.dump_battles()
+            return (0,"this should intentionally throw an exception")
+
+    def server_bottom(self,id):
+        try:
+            return self.battle_server_leaderboard_worst[id]
+        except:
+            self.battle_server_leaderboard_worst[id] = (math.inf,0)
             self.dump_battles()
             return (0,"this should also throw an exception")
 
@@ -1358,6 +1390,7 @@ class Misc(commands.Cog):
             embed.add_field(name="Your Result:", value=str(current_score), inline=False)
 
             pb = self.individual_top(ctx.author.id)
+            pw = self.individual_bottom(ctx.author.id)
 
             dump_flag = False
             if current_score > pb[0]:
@@ -1366,7 +1399,14 @@ class Misc(commands.Cog):
                 self.battle_individual_leaderboard[ctx.author.id] = (current_score, ctx.guild.id)
                 dump_flag = True
 
+            if current_score < pw[0]:
+                name = self.get_name(pw[1])
+                embed.add_field(name="You \"beat\" your personal worst!", value="Previously {} (Set on {})".format(pw[0],name), inline=True)
+                self.battle_individual_leaderboard_worst[ctx.author.id] = (current_score, ctx.guild.id)
+                dump_flag = True
+
             sb = self.server_top(ctx.guild.id)
+            sw = self.server_bottom(ctx.guild.id)
             if current_score > sb[0]:
                 name = self.get_name(sb[1])
 
@@ -1375,12 +1415,31 @@ class Misc(commands.Cog):
                 self.battle_server_leaderboard[ctx.guild.id] = (current_score, ctx.author.id)
                 dump_flag = True
 
+            if current_score > sw[0]:
+                name = self.get_name(sw[1])
+
+                embed.add_field(name="You \"beat\" the server's low score!",
+                                value="Previously {} (Set by {})".format(sw[0],name), inline=True)
+                self.battle_server_leaderboard_worst[ctx.guild.id] = (current_score, ctx.author.id)
+                dump_flag = True
+
             if current_score > self.battle_global_best[0]:
                 uname = self.get_name(self.battle_global_best[1])
                 sname = self.get_name(self.battle_global_best[2])
 
                 embed.add_field(name="You beat the All-Time High Score!",
-                                value="Previously {} (Set by {} on {})".format(sb[0],uname,sname),
+                                value="Previously {} (Set by {} on {})".format(self.battle_global_best[0],uname,sname),
+                                inline=False)
+
+                self.battle_global_best = (current_score, ctx.author.id, ctx.guild.id)
+                dump_flag = True
+
+            if current_score > self.battle_global_worst[0]:
+                uname = self.get_name(self.battle_global_worst[1])
+                sname = self.get_name(self.battle_global_worst[2])
+
+                embed.add_field(name="You \"beat\" the All-Time Low Score!",
+                                value="Previously {} (Set by {} on {})".format(self.battle_global_worst[0],uname,sname),
                                 inline=False)
 
                 self.battle_global_best = (current_score, ctx.author.id, ctx.guild.id)
@@ -1396,6 +1455,7 @@ class Misc(commands.Cog):
                 b9!battle - roll the die and see what happens
                 b9!battle help - shows this message
                 b9!battle leaderboard - shows the leaderboard across all of Discord.
+                b9!battle lowderboard - shows the lowderboard (worst scores) across all of Discord.
                 (note: only the highest score of each person is present.)
                 ``` 
                 '''
@@ -1418,6 +1478,22 @@ class Misc(commands.Cog):
 
                 await ctx.send(message)
 
+            if args[0] == "lowderboard":
+                leaderboard = sorted(self.battle_individual_leaderboard_worst.items(), key = lambda x: x[1][0])
+
+                rank = 1 + leaderboard.index((ctx.author.id, self.battle_individual_leaderboard_worst[ctx.author.id]))
+
+                message = '''**Lowderboard**\n```\n'''
+                for i in range(min(len(leaderboard),20)):
+                    message += "#{} - {} - {}\n".format(i+1, self.get_name(leaderboard[i][0]),leaderboard[i][1][0])
+
+                if rank >= 21:
+                    message += "...\n"
+                    message += "#{} - {} - {}\n".format(rank, self.get_name(leaderboard[rank-1][0]),leaderboard[rank-1][1][0])
+
+                message += "```"
+
+                await ctx.send(message)
 
     '''
     @commands.command(brief="Talk to the DeepTWOW Bots!")
