@@ -1354,7 +1354,7 @@ class Misc(commands.Cog):
         except:
             self.battle_individual_leaderboard_worst[id] = (math.inf,0)
             self.dump_battles()
-            return (0,"this should intentionally throw an exception")
+            return (math.inf,"this should intentionally throw an exception")
 
     def server_bottom(self,id):
         try:
@@ -1362,7 +1362,7 @@ class Misc(commands.Cog):
         except:
             self.battle_server_leaderboard_worst[id] = (math.inf,0)
             self.dump_battles()
-            return (0,"this should also throw an exception")
+            return (math.inf,"this should also throw an exception")
 
     def get_name(self,id):
         try:
