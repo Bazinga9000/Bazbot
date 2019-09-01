@@ -1442,7 +1442,7 @@ class Misc(commands.Cog):
                                 value="Previously {} (Set by {} on {})".format(self.battle_global_worst[0],uname,sname),
                                 inline=False)
 
-                self.battle_global_best = (current_score, ctx.author.id, ctx.guild.id)
+                self.battle_global_worst = (current_score, ctx.author.id, ctx.guild.id)
                 dump_flag = True
 
             if dump_flag: self.dump_battles()
