@@ -1415,7 +1415,7 @@ class Misc(commands.Cog):
                 self.battle_server_leaderboard[ctx.guild.id] = (current_score, ctx.author.id)
                 dump_flag = True
 
-            if current_score > sw[0]:
+            if current_score < sw[0]:
                 name = self.get_name(sw[1])
 
                 embed.add_field(name="You \"beat\" the server's low score!",
@@ -1434,7 +1434,7 @@ class Misc(commands.Cog):
                 self.battle_global_best = (current_score, ctx.author.id, ctx.guild.id)
                 dump_flag = True
 
-            if current_score > self.battle_global_worst[0]:
+            if current_score < self.battle_global_worst[0]:
                 uname = self.get_name(self.battle_global_worst[1])
                 sname = self.get_name(self.battle_global_worst[2])
 
