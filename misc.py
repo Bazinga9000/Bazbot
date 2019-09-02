@@ -1375,7 +1375,7 @@ class Misc(commands.Cog):
 
     @commands.guild_only()
     @commands.command(brief="Battle it out over the outcome of a pareto distribution.")
-    @commands.cooldown(1,5,type=commands.BucketType.user)
+    @commands.cooldown(1,3,type=commands.BucketType.user)
     async def battle(self, ctx, *args):
         if len(args) == 0:
             current_score = numpy.random.pareto(1)
