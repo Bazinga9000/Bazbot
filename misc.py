@@ -21,6 +21,8 @@ import re
 import ipa_to_onyanthu as onyan
 import regex
 import hsluv
+import inspect
+import os
 
 warnings.simplefilter('error', Image.DecompressionBombWarning)
 
@@ -258,8 +260,29 @@ class Misc(commands.Cog):
         await ctx.send("**" + query + "**\n" + random.choice(answers))
 
     @commands.command(brief="View the source code!")
-    async def code(self,ctx):
-        await ctx.send("**View Bazbot's source code here**\nhttps://github.com/Bazinga9000/Bazbot")
+    async def code(self, ctx, *, command: str=None):
+        source_url = 'https://github.com/Bazinga9000/Bazbot/'
+        if command is None:
+            return await ctx.send(f"**View Bazbot's source code here**\n{source_url}")
+
+        obj = self.bot.get_command(command.replace('.', ' '))
+        if obj is None:
+            return await ctx.send('Could not find command.')
+
+        # since we found the command we're looking for, presumably anyway, let's
+        # try to access the code itself
+        src = obj.callback.__code__
+        lines, firstlineno = inspect.getsourcelines(src)
+        if not obj.callback.__module__.startswith('discord'):
+            # not a built-in command
+            location = os.path.relpath(src.co_filename).replace('\\', '/')
+            source_url = f'{source_url}tree/master'
+        else:
+            location = obj.callback.__module__.replace('.', '/') + '.py'
+            source_url = 'https://github.com/Rapptz/discord.py/blob/rewrite'
+
+        final_url = f'<{source_url}/{location}#L{firstlineno}-L{firstlineno + len(lines) - 1}>'
+        await ctx.send(final_url)
 
     @commands.command(brief="Sends images",name="i")
     async def image(self, ctx, name : str):
