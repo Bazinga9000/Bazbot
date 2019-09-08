@@ -102,7 +102,7 @@ def split_word(word):
 
 def render_number(number):
     digits = []
-    numberimage = Image.open("glyphs/digits.png")
+    numberimage = Image.open("cmdimages/glyphs/digits.png")
 
     while number != 0:
         digits.append(number % 36)
@@ -165,15 +165,15 @@ def render_word(word):
         tail_offset = abs(t_width - s_width)//2
 
         for n,char in enumerate(s[0]):
-            glyph = Image.open("glyphs/glyph_" + ipa_file[char] + ".png")
+            glyph = Image.open("cmdimages/glyphs/glyph_" + ipa_file[char] + ".png")
             image.paste(glyph,(total_offset + block_width(s[0][:n]) + head_offset,head_y))
 
         for n,char in enumerate(s[1]):
-            glyph = Image.open("glyphs/glyph_" + ipa_file[char] + ".png")
+            glyph = Image.open("cmdimages/glyphs/glyph_" + ipa_file[char] + ".png")
             image.paste(glyph,(total_offset + block_width(s[1][:n]) + main_offset,main_y))
 
         for n,char in enumerate(s[2]):
-            glyph = Image.open("glyphs/glyph_" + ipa_file[char] + ".png")
+            glyph = Image.open("cmdimages/glyphs/glyph_" + ipa_file[char] + ".png")
             image.paste(glyph,(total_offset + block_width(s[2][:n]) + tail_offset,tail_y))
 
         total_offset += s_width

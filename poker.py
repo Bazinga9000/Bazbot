@@ -163,7 +163,7 @@ class Poker():
             self.handlephase()
 
     def endround(self):
-        self.aliveplayers = sorted(self.aliveplayers, key=lambda x: p.convert(x.hand))
+        self.aliveplayers = sorted(self.aliveplayers, key=lambda x: p.convert(x.hand), reverse=True)
         copy = self.aliveplayers[:]
         max_hand = p.convert(self.aliveplayers[0].hand)
 

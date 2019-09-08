@@ -21,6 +21,7 @@ import re
 import ipa_to_onyanthu as onyan
 import regex
 import hsluv
+import os
 
 warnings.simplefilter('error', Image.DecompressionBombWarning)
 
@@ -211,11 +212,11 @@ class Misc(commands.Cog):
         ratio = s[1] / s[0]
 
         if abs(ratio - 1) < 0.1:
-            menacing = Image.open("menacing/square.png").convert("RGBA")
+            menacing = Image.open("cmdimages/menacing/square.png").convert("RGBA")
         elif ratio > 1:
-            menacing = Image.open("menacing/tall.png").convert("RGBA")
+            menacing = Image.open("cmdimages/menacing/tall.png").convert("RGBA")
         elif ratio < 1:
-            menacing = Image.open("menacing/wide.png").convert("RGBA")
+            menacing = Image.open("cmdimages/menacing/wide.png").convert("RGBA")
 
         menacing = menacing.resize((s[0],s[1]))
 
@@ -294,7 +295,7 @@ class Misc(commands.Cog):
         else:
             score = min(5,self.ratel(entity)//20)
 
-        await ctx.send("**" + entity + "**",file=discord.File(open("./scales/" + str(score) + ".png",mode="rb")))
+        await ctx.send("**" + entity + "**",file=discord.File(open("./cmdimages/scales/" + str(score) + ".png",mode="rb")))
 
     @commands.command(brief="Rates a person or object")
     async def rate(self, ctx, *, entity : str):
@@ -1494,6 +1495,241 @@ class Misc(commands.Cog):
                 message += "```"
 
                 await ctx.send(message)
+
+
+    def ratiocompare(self,value,categories):
+        clist = sorted(categories.items(),key=lambda x: x[1])
+        clist = sorted(clist, key=lambda x: max(abs(value/x[1]),abs(x[1]/value)))
+        return (clist[0][0],value/clist[0][1])
+
+    @commands.command(brief="Procedurally generate a new minecraft ore.")
+    @commands.cooldown(1,5,type=commands.BucketType.user)
+    async def randomore(self, ctx):
+
+        #Generate embed
+        embed = discord.Embed()
+
+        #generate name of ore
+        initials = list('bcdfghjklmnprstvwxyz') + ['bl', 'br', 'ch', 'cl', 'cr', 'dr', 'fn', 'fl', 'fr', 'gl', 'gr', 'ph', 'pl',
+                                                   'pr', 'sh', 'sk', 'sl', 'sm', 'sn', 'sp', 'spl', 'spr', 'st', 'str', 'sw', 'qu',
+                                                   'tj','tr', 'tw', '']
+
+        finals = list('bcdfgklmnprstvxz') + ['ch', 'ck', 'ct', 'ft', 'ld', 'lg', 'lk', 'lt', 'mp', 'nd', 'ng', 'nk', 'nt', 'ph', 'pt',
+                                                 'rk', 'rt', 'sh', 'sk', 'sp', 'ss', 'st', 'th', '']
+
+        vowels = ['a','e','i','o','u','ai','ay','ee', 'ea', 'y', 'ie', 'oa', 'ew']
+
+        syllable = lambda n: "".join([random.choice(initials) + random.choice(vowels) + random.choice(finals) for _ in range(n)])
+
+        syllable_count = random.choice([1,1,1,2,2,3])
+
+        suffixes = ['ite','ium','ane']
+        suffixes.extend(['' for _ in suffixes])
+        name = syllable(syllable_count) + random.choice(suffixes)
+
+        embed.add_field(name="Ore Name", value=name, inline=False)
+
+        #appearance
+        rgb = tuple(random.randint(0,255) for i in range(3))
+        embed.color = discord.Colour.from_rgb(*rgb)
+
+        item = random.choice(os.listdir("./cmdimages/randomore/item")).replace(".png","")
+        ore_texture = random.choice(["coal_ore","lapis_ore","emerald_ore"])
+
+        #spawning block, rarity, and y-level spread if applicable
+        spawnblocks = [
+            'stone', 'diorite','andesite', 'granite', 'dirt', 'sand', 'end_stone', 'netherrack', 'red_sand', 'soul_sand', 'obsidian'
+        ]
+        spawnblocks.extend(['stone' for i in spawnblocks])
+
+        spawnblock_to_rarity = {
+            "stone" : lambda: round(random.uniform(0.05,1.5),4),
+            "diorite" : lambda: round(random.uniform(0.05,1.5),4),
+            "andesite" : lambda: round(random.uniform(0.05,1.5),4),
+            "granite": lambda: round(random.uniform(0.05,1.5),4),
+            "dirt": lambda: round(random.uniform(1,3),4),
+            "sand": lambda: round(random.uniform(1,3),4),
+            "red_sand": lambda: round(random.uniform(1,3),4),
+            "soul_sand": lambda: round(random.uniform(1,3),4),
+            "obsidian": lambda: round(random.uniform(1,3),4),
+            "end_stone": lambda: round(random.uniform(0.5,2),4),
+            "netherrack": lambda: round(random.uniform(0.25,2.5),4)
+        }
+
+        spawnblock = random.choice(spawnblocks)
+
+        rarity = spawnblock_to_rarity[spawnblock]()
+
+        if spawnblock == "stone":
+            if random.random() < 0.2:
+                bottom = random.randint(5,35)
+                top = random.randint(75,135)
+            else:
+                bottom = random.randint(5,75)
+                top = bottom + random.randint(7,30)
+
+            rmessage = "Spawns in {}% of Stone blocks between Y={} and Y={}".format(rarity,bottom,top)
+        else:
+            rmessage = "Spawns in {}% of {} blocks".format(rarity,spawnblock.replace("_"," ").title())
+
+        vein_bottom = random.randint(1,3)
+        vein_top = vein_bottom + random.randint(1,10)
+
+        rmessage += "\nVeins of this ore are between {} and {} blocks large".format(vein_bottom,vein_top)
+
+        x = random.random()
+        if x < 0.25:
+            drop_bottom = random.randint(2,4)
+            drop_top = drop_bottom + random.randint(1,3)
+            rmessage += "\nWhen mined, {}-{} of the resource will drop".format(drop_bottom,drop_top)
+        elif x < 0.5:
+            rmessage += "\nWhen mined, the ore will drop, which needs to be smelted"
+        else:
+            rmessage += "\nWhen mined, 1 of the resource will drop"
+
+        rmessage += "\nThis ore can be mined with a {} pickaxe or better.".format(random.choice(["Wood","Stone","Iron","Diamond"]))
+
+        embed.add_field(name="Mining Information",value=rmessage,inline=False)
+
+        #tools
+        tmessage = ""
+        if random.random() < 0.25:
+            tmessage += "This ore cannot be crafted into tools"
+        else:
+            sword_attack_damage = random.randint(8,20)/2
+            damage_comp = {
+                "Wood" : 4,
+                "Stone" : 5,
+                "Iron" : 6,
+                "Diamond" : 7,
+            }
+            closest_damage = self.ratiocompare(sword_attack_damage,damage_comp)
+
+            tmessage += "Swords made of this ore deal {} damage ({}× {})".format(sword_attack_damage,round(closest_damage[1],2),closest_damage[0])
+
+            tool_durability = int(random.choice([32,131,250,250,250,250,1561,1561,2500]) * random.uniform(0.5,2))
+            durab_comp = {
+                "Gold" : 32,
+                "Stone" : 131,
+                "Iron" : 250,
+                "Diamond" : 1561,
+            }
+            closest_durab = self.ratiocompare(tool_durability,durab_comp)
+            tmessage += "\nTools made of this ore have a durability of {} ({}× {})".format(tool_durability,round(closest_durab[1],2),closest_durab[0])
+
+            tool_speed = round(random.choice([4,6,6,6,8,8,12]) * random.uniform(0.75,1.5),1)
+            speed_comp = {
+                "Fists" : 1,
+                "Wood" : 2,
+                "Stone" : 4,
+                "Iron" : 6,
+                "Diamond" : 8,
+                "Gold" : 12
+            }
+            closest_speed = self.ratiocompare(tool_speed,speed_comp)
+            tmessage += "\nTools made of this ore have {}× mining speed ({}× {})".format(tool_speed,round(closest_speed[1],2),
+                                                                                                                closest_speed[0])
+
+            ptypes = ["Stone","Iron","Diamond"]
+            tmessage += "\nPickaxes made of this ore can mine the same blocks as {} pickaxes".format(random.choice(ptypes))
+        embed.add_field(name="Tool Information", value=tmessage, inline=False)
+
+        #armor
+        amessage = ""
+        if random.random() < 0.25:
+            amessage += "This ore cannot be crafted into armor"
+        else:
+            prot_chest = random.randint(3,12)
+            prot_leggings = max(1, prot_chest - random.randint(1, 5))
+            prot_boots = max(1, prot_leggings - random.randint(1, 5))
+            prot_helmet = max(1, prot_boots - random.randint(0,2))
+
+            fullset_protection = prot_chest + prot_leggings + prot_boots + prot_helmet
+
+            fsp_comp = {
+                "Leather" : 7,
+                "Chainmail" : 12,
+                "Iron" : 15,
+                "Diamond" : 20
+            }
+
+            closest_fsp = self.ratiocompare(fullset_protection,fsp_comp)
+
+            pline = "A full set of this armor gives you {} armor points ({}× {})".format(fullset_protection,round(closest_fsp[1],2),closest_fsp[0])
+            indivline = "\n(Chestplate - {}, Leggings - {}, Boots - {}, Helmet - {})".format(prot_chest,prot_leggings,prot_boots,prot_helmet)
+
+            amessage += pline + indivline
+
+            if random.random() < 0.25:
+                armor_toughness = random.randint(1,4)
+                amessage += "\nEach piece of this armor has {} armor toughness".format(armor_toughness)
+
+
+            dpu = random.choice([16.5,23,49,49,49,107.5]) * random.uniform(0.5,2.5)
+            dpu_comp = {
+                "Leather" : 16.5,
+                "Gold" : 23,
+                "Iron" : 49,
+                "Diamond" : 107.5
+            }
+
+            closest_dpu = self.ratiocompare(dpu,dpu_comp)
+
+            durab_helm = int(0.68 * 5 * dpu)
+            durab_chest = int(0.61 * 8 * dpu)
+            durab_leg = int(0.66 * 7 * dpu)
+            durab_boots = int(4 * dpu)
+
+            amessage += "\n\nArmor Durability:\n" \
+                        "Helmet - {}, Chestplate - {}, Leggings - {}, Boots - {}\n" \
+                        "({}× {})".format(durab_helm,durab_chest,durab_leg,durab_boots,round(closest_dpu[1],2),closest_dpu[0])
+
+        embed.add_field(name="Armor Information", value=amessage, inline=False)
+
+
+        #create images
+        im = Image.open("./cmdimages/randomore/item/{}.png".format(item)).convert("RGBA")
+
+        for i in range(16):
+            for j in range(16):
+                p = im.getpixel((i,j))
+                if p[-1] != 0:
+                    im.putpixel((i,j),tuple([int(rgb[n] * (p[n]/255)) for n in range(3)] + [255]))
+
+        im = im.resize((64,64))
+        im.save("output.png")
+
+        with open("output.png", mode="rb") as f:
+            item_file = discord.File(f, filename="item.png")
+
+        im = Image.open("./cmdimages/randomore/ore/{}.png".format(spawnblock)).convert("RGBA")
+        ore_overlay = Image.open("./cmdimages/randomore/ore/{}.png".format(ore_texture)).convert("RGBA")
+
+        for i in range(16):
+            for j in range(16):
+                p = ore_overlay.getpixel((i,j))
+                if p[-1] != 0:
+                    ore_overlay.putpixel((i,j),tuple([int(rgb[n] * (p[n]/255)) for n in range(3)] + [255]))
+
+        im.paste(ore_overlay, (0,0), ore_overlay)
+        im = im.resize((64, 64))
+        im.save("output2.png")
+
+        with open("output2.png",mode="rb") as f:
+            ore_file = discord.File(f, filename="ore.png")
+
+            embed.set_thumbnail(url="attachment://ore.png")
+            embed.set_image(url="attachment://item.png")
+
+
+
+            await ctx.send(embed=embed,files=[item_file, ore_file])
+
+        try:
+            os.remove("output2.png")
+        except FileNotFoundError:
+            pass
+
 
     '''
     @commands.command(brief="Talk to the DeepTWOW Bots!")
