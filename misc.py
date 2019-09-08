@@ -1548,6 +1548,7 @@ class Misc(commands.Cog):
             "andesite" : lambda: round(random.uniform(0.05,1.5),4),
             "granite": lambda: round(random.uniform(0.05,1.5),4),
             "dirt": lambda: round(random.uniform(1,3),4),
+            "gravel": lambda: round(random.uniform(1,3),4),
             "sand": lambda: round(random.uniform(1,3),4),
             "red_sand": lambda: round(random.uniform(1,3),4),
             "soul_sand": lambda: round(random.uniform(1,3),4),
