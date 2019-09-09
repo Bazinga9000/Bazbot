@@ -1728,7 +1728,7 @@ class Misc(commands.Cog):
             }
 
             closest_armor_enchantability = self.ratiocompare(armor_enchantability, armor_ench_comp)
-            tmessage += "\nArmor made of this ore have {} enchantability ({}× {})".format(armor_enchantability,
+            amessage += "\nArmor made of this ore have {} enchantability ({}× {})".format(armor_enchantability,
                                                                                           round(closest_armor_enchantability[1], 2),
                                                                                           closest_armor_enchantability[0])
 
