@@ -1556,7 +1556,7 @@ class Misc(commands.Cog):
         embed.color = discord.Colour.from_rgb(*rgb)
 
         item = random.choice(os.listdir("./cmdimages/randomore/item")).replace(".png","")
-        ore_texture = random.choice(["coal_ore","lapis_ore","emerald_ore","quartz_ore"] + ["ore{}" for i in range(1,16)])
+        ore_texture = random.choice(["coal_ore","lapis_ore","emerald_ore","quartz_ore"] + ["ore{}".format(i) for i in range(1,16)])
 
         #spawning block, rarity, and y-level spread if applicable
         spawnblocks = [
