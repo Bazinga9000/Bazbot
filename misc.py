@@ -1718,7 +1718,7 @@ class Misc(commands.Cog):
                         "Helmet - {}, Chestplate - {}, Leggings - {}, Boots - {}\n" \
                         "({}× {})".format(durab_helm,durab_chest,durab_leg,durab_boots,round(closest_dpu[1],2),closest_dpu[0])
 
-            armor_enchantability = round(random.choice[9, 10, 10, 12, 12, 14, 15, 25, 25] * random.uniform(0.75,2.5))
+            armor_enchantability = round(random.choice([9, 10, 10, 12, 12, 14, 15, 25, 25]) * random.uniform(0.75,2.5))
             armor_ench_comp = {
                 "Leather": 15,
                 "Iron": 9,
