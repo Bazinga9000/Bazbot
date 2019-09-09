@@ -1569,14 +1569,14 @@ class Misc(commands.Cog):
             "diorite" : lambda: round(random.uniform(0.05,1.5),4),
             "andesite" : lambda: round(random.uniform(0.05,1.5),4),
             "granite": lambda: round(random.uniform(0.05,1.5),4),
-            "dirt": lambda: round(random.uniform(1,3),4),
-            "gravel": lambda: round(random.uniform(1,3),4),
-            "sand": lambda: round(random.uniform(1,3),4),
-            "red_sand": lambda: round(random.uniform(1,3),4),
-            "soul_sand": lambda: round(random.uniform(1,3),4),
+            "dirt": lambda: round(random.uniform(0.1,1.5),4),
+            "gravel": lambda: round(random.uniform(0.1,1.5),4),
+            "sand": lambda: round(random.uniform(0.1,1.5),4),
+            "red_sand": lambda: round(random.uniform(0.1,1.5),4),
+            "soul_sand": lambda: round(random.uniform(0.1,1.5),4),
             "obsidian": lambda: round(random.uniform(1,3),4),
             "end_stone": lambda: round(random.uniform(0.5,2),4),
-            "netherrack": lambda: round(random.uniform(0.25,2.5),4)
+            "netherrack": lambda: round(random.uniform(0.01,1.75),4)
         }
 
         spawnblock = random.choice(spawnblocks)
@@ -1601,16 +1601,31 @@ class Misc(commands.Cog):
         rmessage += "\nVeins of this ore are between {} and {} blocks large".format(vein_bottom,vein_top)
 
         x = random.random()
+
         if x < 0.25:
             drop_bottom = random.randint(2,4)
             drop_top = drop_bottom + random.randint(1,3)
             rmessage += "\nWhen mined, {}-{} of the resource will drop".format(drop_bottom,drop_top)
-        elif x < 0.5:
-            rmessage += "\nWhen mined, the ore will drop, which needs to be smelted"
-        else:
+        elif x < 0.75:
             rmessage += "\nWhen mined, 1 of the resource will drop"
+        else:
+            rmessage += "\nWhen mined, the ore will drop, which needs to be smelted"
 
-        rmessage += "\nThis ore can be mined with a {} pickaxe or better.".format(random.choice(["Wood","Stone","Iron","Diamond"]))
+        if x < 0.75:
+            xp_bottom = random.randint(1,5)
+            xp_top = xp_bottom + random.randint(1,5)
+            rmessage += "\nMining this ore gives {}-{} points of experience.".format(xp_bottom,xp_top)
+        else:
+            rmessage += "\nSmelting this ore gives {} points of experience".format(random.choice[1,1,1,1,2])
+
+        material = random.choice(["Wood","Stone","Iron","Diamond"])
+        if spawnblock in ["stone","granite","diorite","andesite","obsidian","netherrack","end_stone"]:
+            tooltype = "Pickaxe"
+        else:
+            tooltype = "Shovel"
+
+        article = "an" if material == "Iron" else "a"
+        rmessage += "\nThis ore can be mined with {} {} {} or better.".format(article,material,tooltype)
 
         embed.add_field(name="Mining Information",value=rmessage,inline=False)
 
