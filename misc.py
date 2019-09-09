@@ -1556,7 +1556,7 @@ class Misc(commands.Cog):
         embed.color = discord.Colour.from_rgb(*rgb)
 
         item = random.choice(os.listdir("./cmdimages/randomore/item")).replace(".png","")
-        ore_texture = random.choice(["coal_ore","lapis_ore","emerald_ore"])
+        ore_texture = random.choice(["coal_ore","lapis_ore","emerald_ore","quartz_ore"] + ["ore{}" for i in range(1,16)])
 
         #spawning block, rarity, and y-level spread if applicable
         spawnblocks = [
@@ -1652,9 +1652,20 @@ class Misc(commands.Cog):
             closest_speed = self.ratiocompare(tool_speed,speed_comp)
             tmessage += "\nTools made of this ore have {}× mining speed ({}× {})".format(tool_speed,round(closest_speed[1],2),
                                                                                                                 closest_speed[0])
-
             ptypes = ["Stone","Iron","Diamond"]
             tmessage += "\nPickaxes made of this ore can mine the same blocks as {} pickaxes".format(random.choice(ptypes))
+
+            tool_enchantability = round(random.choice([5, 10, 10, 14, 14, 14, 15, 15, 15, 22]) * random.uniform(0.75,2.5))
+            tool_ench_comp = {
+                "Stone": 5,
+                "Iron": 14,
+                "Diamond": 10,
+                "Gold": 22
+            }
+
+            closest_tool_enchantability = self.ratiocompare(tool_enchantability, tool_ench_comp)
+            tmessage += "\nTools made of this ore have {} enchantability ({}× {})".format(tool_enchantability, round(closest_tool_enchantability[1], 2),
+                                                                                          closest_tool_enchantability[0])
         embed.add_field(name="Tool Information", value=tmessage, inline=False)
 
         #armor
@@ -1706,6 +1717,20 @@ class Misc(commands.Cog):
             amessage += "\n\nArmor Durability:\n" \
                         "Helmet - {}, Chestplate - {}, Leggings - {}, Boots - {}\n" \
                         "({}× {})".format(durab_helm,durab_chest,durab_leg,durab_boots,round(closest_dpu[1],2),closest_dpu[0])
+
+            armor_enchantability = round(random.choice[9, 10, 10, 12, 12, 14, 15, 25, 25] * random.uniform(0.75,2.5))
+            armor_ench_comp = {
+                "Leather": 15,
+                "Iron": 9,
+                "Diamond": 10,
+                "Chainmail": 12,
+                "Gold": 25
+            }
+
+            closest_armor_enchantability = self.ratiocompare(armor_enchantability, armor_ench_comp)
+            tmessage += "\nArmor made of this ore have {} enchantability ({}× {})".format(armor_enchantability,
+                                                                                          round(closest_armor_enchantability[1], 2),
+                                                                                          closest_armor_enchantability[0])
 
         embed.add_field(name="Armor Information", value=amessage, inline=False)
 
