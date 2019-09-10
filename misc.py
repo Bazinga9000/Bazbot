@@ -1559,25 +1559,25 @@ class Misc(commands.Cog):
         ore_texture = random.choice(["coal_ore","lapis_ore","emerald_ore","quartz_ore"] + ["ore{}".format(i) for i in range(1,16)])
 
         #spawning block, rarity, and y-level spread if applicable
-        spawnblocks = [
-            'stone', 'diorite','andesite', 'granite', 'dirt', 'sand', 'end_stone', 'netherrack', 'red_sand', 'soul_sand', 'obsidian'
-        ]
+        spawnblock_to_rarity = {
+            "stone": lambda: round(random.uniform(0.05, 1.5), 4),
+            "diorite": lambda: round(random.uniform(0.05, 1.5), 4),
+            "andesite": lambda: round(random.uniform(0.05, 1.5), 4),
+            "granite": lambda: round(random.uniform(0.05, 1.5), 4),
+            "dirt": lambda: round(random.uniform(0.1, 1.5), 4),
+            "gravel": lambda: round(random.uniform(0.1, 1.5), 4),
+            "sand": lambda: round(random.uniform(0.1, 1.5), 4),
+            "red_sand": lambda: round(random.uniform(0.1, 1.5), 4),
+            "soul_sand": lambda: round(random.uniform(0.1, 1.5), 4),
+            "obsidian": lambda: round(random.uniform(1, 3), 4),
+            "end_stone": lambda: round(random.uniform(0.5, 2), 4),
+            "netherrack": lambda: round(random.uniform(0.01, 1.75), 4)
+        }
+
+        spawnblocks = spawnblock_to_rarity.keys()
         spawnblocks.extend(['stone' for i in spawnblocks])
 
-        spawnblock_to_rarity = {
-            "stone" : lambda: round(random.uniform(0.05,1.5),4),
-            "diorite" : lambda: round(random.uniform(0.05,1.5),4),
-            "andesite" : lambda: round(random.uniform(0.05,1.5),4),
-            "granite": lambda: round(random.uniform(0.05,1.5),4),
-            "dirt": lambda: round(random.uniform(0.1,1.5),4),
-            "gravel": lambda: round(random.uniform(0.1,1.5),4),
-            "sand": lambda: round(random.uniform(0.1,1.5),4),
-            "red_sand": lambda: round(random.uniform(0.1,1.5),4),
-            "soul_sand": lambda: round(random.uniform(0.1,1.5),4),
-            "obsidian": lambda: round(random.uniform(1,3),4),
-            "end_stone": lambda: round(random.uniform(0.5,2),4),
-            "netherrack": lambda: round(random.uniform(0.01,1.75),4)
-        }
+
 
         spawnblock = random.choice(spawnblocks)
 
