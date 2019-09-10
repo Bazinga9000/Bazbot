@@ -1574,7 +1574,7 @@ class Misc(commands.Cog):
             "netherrack": lambda: round(random.uniform(0.01, 1.75), 4)
         }
 
-        spawnblocks = spawnblock_to_rarity.keys()
+        spawnblocks = list(spawnblock_to_rarity.keys())
         spawnblocks.extend(['stone' for i in spawnblocks])
 
 
