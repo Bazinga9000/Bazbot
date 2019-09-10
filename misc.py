@@ -1631,7 +1631,9 @@ class Misc(commands.Cog):
 
         #tools
         tmessage = ""
-        if random.random() < 0.25:
+
+        can_make_tools = random.random() < 0.25
+        if can_make_tools:
             tmessage += "This ore cannot be crafted into tools"
         else:
             sword_attack_damage = random.randint(8,20)/2
@@ -1685,7 +1687,8 @@ class Misc(commands.Cog):
 
         #armor
         amessage = ""
-        if random.random() < 0.25:
+        can_make_armor = random.random() < 0.25
+        if can_make_armor:
             amessage += "This ore cannot be crafted into armor"
         else:
             prot_chest = random.randint(3,12)
@@ -1749,6 +1752,39 @@ class Misc(commands.Cog):
 
         embed.add_field(name="Armor Information", value=amessage, inline=False)
 
+
+        #special characteristics
+        if random.random() < 0.2:
+            positive_effects = ["Speed","Haste","Strength","Instant Health","Jump Boost","Regeneration","Resistance",
+                                "Fire Resistance","Water Breathing","Invisibility","Night Vision","Health Boost",
+                                "Absorption","Saturation","Luck","Slow Falling","Conduit Power","Dolphin's Grace",
+                                "Hero of the Village"]
+
+            negative_effects = ["Slowness","Mining Fatigue","Instant Damage","Nausea","Blindness","Hunger","Weakness",
+                                "Poison","Wither","Glowing","Bad Luck","Bad Omen"]
+
+            positive_effect = random.choice(positive_effects) if random.random() < 0.75 else random.choice(negative_effects)
+            negative_effect = random.choice(negative_effects) if random.random() < 0.75 else random.choice(positive_effects)
+
+            random_time = lambda: random.choice(["10s", "10s", "10s", "10s", "30s", "30s", "30s", "45s", "45s", "1m","2m"])
+
+            spmessage = []
+
+            #consumable
+            if random.random() < 0.5:
+                if random.random() < 0.5:
+                    consume_bonus = "{} Hunger Points".format(random.randint(6,14))
+                else:
+                    consume_bonus = "{} of {}".format(random_time(),positive_effect)
+
+                spmessage.append("This resource can be consumed. Doing so grants {}".format(consume_bonus))
+
+            #tool strike effect
+            if random.random() < 0.5:
+                spmessage.append("Any entity struck with a tool made of this ore gains {} of {}".format(random_time(),negative_effect))
+
+
+            embed.add_field(name="Special Abilities",value="\n".join(spmessage),inline=False)
 
         #create images
         im = Image.open("./cmdimages/randomore/item/{}.png".format(item)).convert("RGBA")
