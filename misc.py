@@ -1524,6 +1524,14 @@ class Misc(commands.Cog):
         clist = sorted(clist, key=lambda x: max(abs(value/x[1]),abs(x[1]/value)))
         return (clist[0][0],value/clist[0][1])
 
+    def colorize(self,im,rgb):
+        for i in range(16):
+            for j in range(16):
+                p = im.getpixel((i,j))
+                if p[-1] != 0:
+                    im.putpixel((i,j),tuple([int(rgb[n] * (p[n]/255)) for n in range(3)] + [255]))
+        return im
+
     @commands.command(brief="Procedurally generate a new minecraft ore.")
     @commands.cooldown(1,5,type=commands.BucketType.user)
     async def randomore(self, ctx):
@@ -1556,6 +1564,7 @@ class Misc(commands.Cog):
         embed.color = discord.Colour.from_rgb(*rgb)
 
         item = random.choice(os.listdir("./cmdimages/randomore/item")).replace(".png","")
+        block_texture = random.choice(os.listdir("./cmdimages/randomore/block")).replace(".png","")
         ore_texture = random.choice(["coal_ore","lapis_ore","emerald_ore","quartz_ore"] + ["ore{}".format(i) for i in range(1,16)])
 
         #spawning block, rarity, and y-level spread if applicable
@@ -1788,31 +1797,33 @@ class Misc(commands.Cog):
             embed.add_field(name="Special Abilities",value="\n".join(spmessage),inline=False)
 
         #create images
-        im = Image.open("./cmdimages/randomore/item/{}.png".format(item)).convert("RGBA")
+        iim = Image.open("./cmdimages/randomore/item/{}.png".format(item)).convert("RGBA")
 
-        for i in range(16):
-            for j in range(16):
-                p = im.getpixel((i,j))
-                if p[-1] != 0:
-                    im.putpixel((i,j),tuple([int(rgb[n] * (p[n]/255)) for n in range(3)] + [255]))
+        iim = self.colorize(iim,rgb)
 
-        im = im.resize((64,64))
+        iim = iim.resize((64,64))
+
+        bim = Image.open("./cmdimages/randomore/block/{}.png".format(block_texture)).convert("RGBA")
+        bim = self.colorize(bim, rgb)
+        bim = bim.resize((64,64))
+
+        im = Image.new("RGBA",(160,64),(0,0,0,0))
+
+        im.paste(iim,(0,0),iim)
+        im.paste(bim,(80,0),bim)
+
         im.save("output.png")
-
         with open("output.png", mode="rb") as f:
             item_file = discord.File(f, filename="item.png")
 
         im = Image.open("./cmdimages/randomore/ore/{}.png".format(spawnblock)).convert("RGBA")
         ore_overlay = Image.open("./cmdimages/randomore/ore/{}.png".format(ore_texture)).convert("RGBA")
 
-        for i in range(16):
-            for j in range(16):
-                p = ore_overlay.getpixel((i,j))
-                if p[-1] != 0:
-                    ore_overlay.putpixel((i,j),tuple([int(rgb[n] * (p[n]/255)) for n in range(3)] + [255]))
+        ore_overlay = self.colorize(ore_overlay, rgb)
 
         im.paste(ore_overlay, (0,0), ore_overlay)
         im = im.resize((64, 64))
+
         im.save("output2.png")
 
         with open("output2.png",mode="rb") as f:
