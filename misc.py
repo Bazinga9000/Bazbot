@@ -1591,32 +1591,32 @@ class Misc(commands.Cog):
                 bottom = random.randint(5,75)
                 top = bottom + random.randint(7,30)
 
-            rmessage = "Spawns in {}% of Stone blocks between Y={} and Y={}".format(rarity,bottom,top)
+            rmessage = "Spawn - {}% of Stone between Y={} and Y={}".format(rarity,bottom,top)
         else:
-            rmessage = "Spawns in {}% of {} blocks".format(rarity,spawnblock.replace("_"," ").title())
+            rmessage = "Spawn - {}% of {}".format(rarity,spawnblock.replace("_"," ").title())
 
         vein_bottom = random.randint(1,3)
         vein_top = vein_bottom + random.randint(1,10)
 
-        rmessage += "\nVeins of this ore are between {} and {} blocks large".format(vein_bottom,vein_top)
+        rmessage += "\nVeins - {}-{} blocks".format(vein_bottom,vein_top)
 
         x = random.random()
 
         if x < 0.25:
             drop_bottom = random.randint(2,4)
             drop_top = drop_bottom + random.randint(1,3)
-            rmessage += "\nWhen mined, {}-{} of the resource will drop".format(drop_bottom,drop_top)
+            rmessage += "\nDrop - {}-{} resource".format(drop_bottom,drop_top)
         elif x < 0.75:
-            rmessage += "\nWhen mined, 1 of the resource will drop"
+            rmessage += "\nDrop - 1 resource"
         else:
-            rmessage += "\nWhen mined, the ore will drop, which needs to be smelted"
+            rmessage += "\nDrop - Raw ore"
 
         if x < 0.75:
             xp_bottom = random.randint(1,5)
             xp_top = xp_bottom + random.randint(1,5)
-            rmessage += "\nMining this ore gives {}-{} points of experience.".format(xp_bottom,xp_top)
+            rmessage += "\nMining XP - {}-{} points".format(xp_bottom,xp_top)
         else:
-            rmessage += "\nSmelting this ore gives {} points of experience".format(random.choice([1,1,1,1,2]))
+            rmessage += "\nSmelting XP - {} points".format(random.choice([1,1,1,1,2]))
 
         material = random.choice(["Wood","Stone","Iron","Diamond"])
         if spawnblock in ["stone","granite","diorite","andesite","obsidian","netherrack","end_stone"]:
@@ -1624,8 +1624,7 @@ class Misc(commands.Cog):
         else:
             tooltype = "Shovel"
 
-        article = "an" if material == "Iron" else "a"
-        rmessage += "\nThis ore can be mined with {} {} {} or better.".format(article,material,tooltype)
+        rmessage += "\nMineable by - {} {} or better.".format(material,tooltype)
 
         embed.add_field(name="Mining Information",value=rmessage,inline=False)
 
@@ -1645,7 +1644,7 @@ class Misc(commands.Cog):
             }
             closest_damage = self.ratiocompare(sword_attack_damage,damage_comp)
 
-            tmessage += "Swords made of this ore deal {} damage ({}× {})".format(sword_attack_damage,round(closest_damage[1],2),closest_damage[0])
+            tmessage += "Sword Damage - {} ({}× {})".format(sword_attack_damage,round(closest_damage[1],2),closest_damage[0])
 
             tool_durability = int(random.choice([32,131,250,250,250,250,1561,1561,2500]) * random.uniform(0.5,2))
             durab_comp = {
@@ -1655,7 +1654,7 @@ class Misc(commands.Cog):
                 "Diamond" : 1561,
             }
             closest_durab = self.ratiocompare(tool_durability,durab_comp)
-            tmessage += "\nTools made of this ore have a durability of {} ({}× {})".format(tool_durability,round(closest_durab[1],2),closest_durab[0])
+            tmessage += "\nTool Durability - {} ({}× {})".format(tool_durability,round(closest_durab[1],2),closest_durab[0])
 
             tool_speed = round(random.choice([4,6,6,6,8,8,12]) * random.uniform(0.75,1.5),1)
             speed_comp = {
@@ -1667,10 +1666,10 @@ class Misc(commands.Cog):
                 "Gold" : 12
             }
             closest_speed = self.ratiocompare(tool_speed,speed_comp)
-            tmessage += "\nTools made of this ore have {}× mining speed ({}× {})".format(tool_speed,round(closest_speed[1],2),
+            tmessage += "\nMining Speed Multiplier - {}× ({}× {})".format(tool_speed,round(closest_speed[1],2),
                                                                                                                 closest_speed[0])
             ptypes = ["Stone","Iron","Diamond"]
-            tmessage += "\nPickaxes made of this ore can mine the same blocks as {} pickaxes".format(random.choice(ptypes))
+            tmessage += "\nMining Level - {}".format(random.choice(ptypes))
 
             tool_enchantability = round(random.choice([5, 10, 10, 14, 14, 14, 15, 15, 15, 22]) * random.uniform(0.75,2.5))
             tool_ench_comp = {
@@ -1681,7 +1680,7 @@ class Misc(commands.Cog):
             }
 
             closest_tool_enchantability = self.ratiocompare(tool_enchantability, tool_ench_comp)
-            tmessage += "\nTools made of this ore have {} enchantability ({}× {})".format(tool_enchantability, round(closest_tool_enchantability[1], 2),
+            tmessage += "\nEnchantability - {} ({}× {})".format(tool_enchantability, round(closest_tool_enchantability[1], 2),
                                                                                           closest_tool_enchantability[0])
         embed.add_field(name="Tool Information", value=tmessage, inline=False)
 
@@ -1707,14 +1706,14 @@ class Misc(commands.Cog):
 
             closest_fsp = self.ratiocompare(fullset_protection,fsp_comp)
 
-            pline = "A full set of this armor gives you {} armor points ({}× {})".format(fullset_protection,round(closest_fsp[1],2),closest_fsp[0])
+            pline = "Protection of a full set - {} points ({}× {})".format(fullset_protection,round(closest_fsp[1],2),closest_fsp[0])
             indivline = "\n(Chestplate - {}, Leggings - {}, Boots - {}, Helmet - {})".format(prot_chest,prot_leggings,prot_boots,prot_helmet)
 
             amessage += pline + indivline
 
             if random.random() < 0.25:
                 armor_toughness = random.randint(1,4)
-                amessage += "\nEach piece of this armor has {} armor toughness".format(armor_toughness)
+                amessage += "\nArmor Toughness - {} per piece".format(armor_toughness)
 
 
             dpu = random.choice([16.5,23,49,49,49,107.5]) * random.uniform(0.5,2.5)
@@ -1732,7 +1731,7 @@ class Misc(commands.Cog):
             durab_leg = int(0.66 * 7 * dpu)
             durab_boots = int(4 * dpu)
 
-            amessage += "\n\nArmor Durability:\n" \
+            amessage += "\nArmor Durability:\n" \
                         "Helmet - {}, Chestplate - {}, Leggings - {}, Boots - {}\n" \
                         "({}× {})".format(durab_helm,durab_chest,durab_leg,durab_boots,round(closest_dpu[1],2),closest_dpu[0])
 
@@ -1746,7 +1745,7 @@ class Misc(commands.Cog):
             }
 
             closest_armor_enchantability = self.ratiocompare(armor_enchantability, armor_ench_comp)
-            amessage += "\nArmor made of this ore have {} enchantability ({}× {})".format(armor_enchantability,
+            amessage += "\nArmor Enchantability - {} ({}× {})".format(armor_enchantability,
                                                                                           round(closest_armor_enchantability[1], 2),
                                                                                           closest_armor_enchantability[0])
 
@@ -1777,11 +1776,11 @@ class Misc(commands.Cog):
                 else:
                     consume_bonus = "{} of {}".format(random_time(),positive_effect)
 
-                spmessage.append("This resource can be consumed. Doing so grants {}".format(consume_bonus))
+                spmessage.append("Effect of Consumption - {}".format(consume_bonus))
 
             #tool strike effect
             if random.random() < 0.5:
-                spmessage.append("Any entity struck with a tool made of this ore gains {} of {}".format(random_time(),negative_effect))
+                spmessage.append("Effect on Hit - {} of {}".format(random_time(),negative_effect))
 
 
             embed.add_field(name="Special Abilities",value="\n".join(spmessage),inline=False)
