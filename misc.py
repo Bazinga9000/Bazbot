@@ -1707,7 +1707,7 @@ class Misc(commands.Cog):
             closest_fsp = self.ratiocompare(fullset_protection,fsp_comp)
 
             pline = "Total Armor Points - {} ({}× {})".format(fullset_protection,round(closest_fsp[1],2),closest_fsp[0])
-            indivline = "\n(Chestplate - {}, Leggings - {}, Boots - {}, Helmet - {})".format(prot_chest,prot_leggings,prot_boots,prot_helmet)
+            indivline = "\nPiece Armor Points - Chestplate {}, Leggings {}, Boots {}, Helmet {}".format(prot_chest,prot_leggings,prot_boots,prot_helmet)
 
             amessage += pline + indivline
 
@@ -1761,10 +1761,13 @@ class Misc(commands.Cog):
             negative_effects = ["Slowness","Mining Fatigue","Instant Damage","Nausea","Blindness","Hunger","Weakness",
                                 "Poison","Wither","Glowing","Bad Luck","Bad Omen"]
 
+            single_potency_effects = ["Water Breathing","Invisibility","Night Vision","Blindness","Glowing"]
+
             positive_effect = random.choice(positive_effects) if random.random() < 0.75 else random.choice(negative_effects)
             negative_effect = random.choice(negative_effects) if random.random() < 0.75 else random.choice(positive_effects)
 
             random_time = lambda: random.choice(["10s", "10s", "10s", "10s", "30s", "30s", "30s", "45s", "45s", "1m","2m"])
+            random_potency = lambda effect: " " + random.choice(["I","I","I","I","I","II","II","III"]) if effect not in single_potency_effects else ""
 
             spmessage = []
 
@@ -1773,13 +1776,13 @@ class Misc(commands.Cog):
                 if random.random() < 0.5:
                     consume_bonus = "{} Hunger Points".format(random.randint(6,14))
                 else:
-                    consume_bonus = "{} of {}".format(random_time(),positive_effect)
+                    consume_bonus = "{} of {}{}".format(random_time(),positive_effect,random_potency(positive_effect))
 
                 spmessage.append("Effect of Consumption - {}".format(consume_bonus))
 
             #tool strike effect
             if random.random() < 0.5:
-                spmessage.append("Effect on Hit - {} of {}".format(random_time(),negative_effect))
+                spmessage.append("Effect on Hit - {} of {}{}".format(random_time(),negative_effect,random_potency(negative_effect)))
 
             embed.add_field(name="Special Abilities",value="\n".join(spmessage),inline=False)
 
