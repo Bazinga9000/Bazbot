@@ -1775,7 +1775,7 @@ class Misc(commands.Cog):
             #consumable
             if random.random() < 0.5:
                 if random.random() < 0.5:
-                    consume_bonus = "{} Hunger Points".format(random.randint(6,14))
+                    consume_bonus = "{} Hunger Points, {} Saturation Points".format(random.randint(6,14),random.randint(2,10))
                 else:
                     consume_bonus = "{} of {}{}".format(random_time(),positive_effect,random_potency(positive_effect))
 
