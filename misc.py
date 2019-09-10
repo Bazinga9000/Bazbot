@@ -1654,7 +1654,7 @@ class Misc(commands.Cog):
                 "Diamond" : 1561,
             }
             closest_durab = self.ratiocompare(tool_durability,durab_comp)
-            tmessage += "\nTool Durability - {} ({}× {})".format(tool_durability,round(closest_durab[1],2),closest_durab[0])
+            tmessage += "\nDurability - {} ({}× {})".format(tool_durability,round(closest_durab[1],2),closest_durab[0])
 
             tool_speed = round(random.choice([4,6,6,6,8,8,12]) * random.uniform(0.75,1.5),1)
             speed_comp = {
@@ -1706,14 +1706,14 @@ class Misc(commands.Cog):
 
             closest_fsp = self.ratiocompare(fullset_protection,fsp_comp)
 
-            pline = "Total Armor Points - {} ({}× {})".format(fullset_protection,round(closest_fsp[1],2),closest_fsp[0])
-            indivline = "\nPiece Armor Points - Chestplate {}, Leggings {}, Boots {}, Helmet {}".format(prot_chest,prot_leggings,prot_boots,prot_helmet)
+            pline = "Total Protection - {} points ({}× {})".format(fullset_protection,round(closest_fsp[1],2),closest_fsp[0])
+            indivline = "\nPiece Protection - Chestplate {}, Leggings {}, Boots {}, Helmet {}".format(prot_chest,prot_leggings,prot_boots,prot_helmet)
 
             amessage += pline + indivline
 
             if random.random() < 0.25:
                 armor_toughness = random.randint(1,4)
-                amessage += "\nArmor Toughness - {} per piece".format(armor_toughness)
+                amessage += "\nToughness - {} per piece".format(armor_toughness)
 
 
             dpu = random.choice([16.5,23,49,49,49,107.5]) * random.uniform(0.5,2.5)
@@ -1731,7 +1731,7 @@ class Misc(commands.Cog):
             durab_leg = int(0.66 * 7 * dpu)
             durab_boots = int(4 * dpu)
 
-            amessage += "\nArmor Durability - Helmet {}, Chestplate {}, Leggings {}, Boots {}\n" \
+            amessage += "\nDurability - Helmet {}, Chestplate {}, Leggings {}, Boots {}\n" \
                         "({}× {})".format(durab_helm,durab_chest,durab_leg,durab_boots,round(closest_dpu[1],2),closest_dpu[0])
 
             armor_enchantability = round(random.choice([9, 10, 10, 12, 12, 14, 15, 25, 25]) * random.uniform(0.75,2.5))
@@ -1744,7 +1744,7 @@ class Misc(commands.Cog):
             }
 
             closest_armor_enchantability = self.ratiocompare(armor_enchantability, armor_ench_comp)
-            amessage += "\nArmor Enchantability - {} ({}× {})".format(armor_enchantability,
+            amessage += "\nEnchantability - {} ({}× {})".format(armor_enchantability,
                                                                                           round(closest_armor_enchantability[1], 2),
                                                                                           closest_armor_enchantability[0])
 
