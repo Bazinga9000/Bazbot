@@ -1706,7 +1706,7 @@ class Misc(commands.Cog):
 
             closest_fsp = self.ratiocompare(fullset_protection,fsp_comp)
 
-            pline = "Protection of a full set - {} points ({}× {})".format(fullset_protection,round(closest_fsp[1],2),closest_fsp[0])
+            pline = "Total Armor Points - {} ({}× {})".format(fullset_protection,round(closest_fsp[1],2),closest_fsp[0])
             indivline = "\n(Chestplate - {}, Leggings - {}, Boots - {}, Helmet - {})".format(prot_chest,prot_leggings,prot_boots,prot_helmet)
 
             amessage += pline + indivline
@@ -1731,8 +1731,7 @@ class Misc(commands.Cog):
             durab_leg = int(0.66 * 7 * dpu)
             durab_boots = int(4 * dpu)
 
-            amessage += "\nArmor Durability:\n" \
-                        "Helmet - {}, Chestplate - {}, Leggings - {}, Boots - {}\n" \
+            amessage += "\nArmor Durability - Helmet {}, Chestplate {}, Leggings {}, Boots {}\n" \
                         "({}× {})".format(durab_helm,durab_chest,durab_leg,durab_boots,round(closest_dpu[1],2),closest_dpu[0])
 
             armor_enchantability = round(random.choice([9, 10, 10, 12, 12, 14, 15, 25, 25]) * random.uniform(0.75,2.5))
@@ -1781,7 +1780,6 @@ class Misc(commands.Cog):
             #tool strike effect
             if random.random() < 0.5:
                 spmessage.append("Effect on Hit - {} of {}".format(random_time(),negative_effect))
-
 
             embed.add_field(name="Special Abilities",value="\n".join(spmessage),inline=False)
 
