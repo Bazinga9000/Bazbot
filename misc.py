@@ -1616,7 +1616,7 @@ class Misc(commands.Cog):
             xp_top = xp_bottom + random.randint(1,5)
             rmessage += "\nMining this ore gives {}-{} points of experience.".format(xp_bottom,xp_top)
         else:
-            rmessage += "\nSmelting this ore gives {} points of experience".format(random.choice[1,1,1,1,2])
+            rmessage += "\nSmelting this ore gives {} points of experience".format(random.choice([1,1,1,1,2]))
 
         material = random.choice(["Wood","Stone","Iron","Diamond"])
         if spawnblock in ["stone","granite","diorite","andesite","obsidian","netherrack","end_stone"]:
