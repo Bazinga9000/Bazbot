@@ -1786,13 +1786,31 @@ class Misc(commands.Cog):
                 if random.random() < 0.5:
                     consume_bonus = "{} Hunger Points, {} Saturation Points".format(random.randint(6,14),random.randint(2,10))
                 else:
-                    consume_bonus = "{} of {}{}".format(random_time(),positive_effect,random_potency(positive_effect))
+                    if "Instant" in positive_effect:
+                        consume_bonus = "{}{}".format(positive_effect,random_potency(positive_effect))
+                    else:
+                        consume_bonus = "{} of {}{}".format(random_time(),positive_effect,random_potency(positive_effect))
 
                 spmessage.append("Effect of Consumption - {}".format(consume_bonus))
 
             #tool strike effect
-            if random.random() < 0.5:
-                spmessage.append("Effect on Hit - {} of {}{}".format(random_time(),negative_effect,random_potency(negative_effect)))
+            if random.random() < 0.75 and can_make_tools:
+                if "Instant" in negative_effect:
+                    hit_bonus = "{}{}".format(negative_effect, random_potency(positive_effect))
+                else:
+                    hit_bonus = "{} of {}{}".format(random_time(), negative_effect, random_potency(negative_effect))
+
+                spmessage.append("Effect on Hit - {}".format(hit_bonus))
+
+
+            #full set bonus
+            if random.random() < 0.25 and can_make_armor:
+                ni_positive = [i for i in positive_effects if "Instant" not in i]
+                ni_negative = [i for i in negative_effects if "Instant" not in i]
+
+                fs_effect = random.choice(ni_positive) if random.random() < 0.75 else random.choice(ni_negative)
+
+                spmessage.append("Full Set Bonus - {}{}".format(fs_effect,random_potency(fs_effect)))
 
             embed.add_field(name="Special Abilities",value="\n".join(spmessage),inline=False)
 
