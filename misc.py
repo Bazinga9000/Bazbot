@@ -1640,8 +1640,8 @@ class Misc(commands.Cog):
         #tools
         tmessage = ""
 
-        can_make_tools = random.random() < 0.25
-        if can_make_tools:
+        can_make_tools = random.random() > 0.25
+        if not can_make_tools:
             tmessage += "This ore cannot be crafted into tools"
         else:
             sword_attack_damage = random.randint(8,20)/2
@@ -1695,8 +1695,8 @@ class Misc(commands.Cog):
 
         #armor
         amessage = ""
-        can_make_armor = random.random() < 0.25
-        if can_make_armor:
+        can_make_armor = random.random() > 0.25
+        if not can_make_armor:
             amessage += "This ore cannot be crafted into armor"
         else:
             prot_chest = random.randint(3,12)
