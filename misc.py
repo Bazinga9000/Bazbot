@@ -1542,7 +1542,7 @@ class Misc(commands.Cog):
         #generate name of ore
         initials = list('bcdfghjklmnprstvwxyz') + ['bl', 'br', 'ch', 'cl', 'cr', 'dr', 'fn', 'fl', 'fr', 'gl', 'gr', 'ph', 'pl',
                                                    'pr', 'sh', 'sk', 'sl', 'sm', 'sn', 'sp', 'spl', 'spr', 'st', 'str', 'sw', 'qu',
-                                                   'tj','tr', 'tw', '']
+                                                   'th', 'tj','tr', 'tw', '']
 
         finals = list('bcdfgklmnprstvxz') + ['ch', 'ck', 'ct', 'ft', 'ld', 'lg', 'lk', 'lt', 'mp', 'nd', 'ng', 'nk', 'nt', 'ph', 'pt',
                                                  'rk', 'rt', 'sh', 'sk', 'sp', 'ss', 'st', 'th', '']
