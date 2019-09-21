@@ -1553,7 +1553,7 @@ class Misc(commands.Cog):
 
         syllable_count = random.choice([1,1,1,2,2,3])
 
-        suffixes = ['ite','ium','ane']
+        suffixes = ['ite','ium','ane','ine','ene','ate','lite','lith']
         suffixes.extend(['' for _ in suffixes])
         name = syllable(syllable_count) + random.choice(suffixes)
 
