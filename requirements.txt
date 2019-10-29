@@ -6,7 +6,7 @@ sympy==1.4
 discord.py==1.0.1
 aiohttp==3.4.4
 numpy==1.16.4
-Pillow==6.1.0
+Pillow==6.2.0
 dice==2.4.2
 discord==1.0.1
 hsluv==0.0.2
