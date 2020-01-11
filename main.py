@@ -6,12 +6,12 @@ import sys,traceback
 import subprocess
 import asyncio
 import concurrent
-
+import time
 
 owner = lambda ctx: ctx.author.id == 137001076284063744
 tracebackt = True
 frozen = False
-
+logging = False
 
 description = '''Bazinga_9000's Fancy Robot
 It does cool things I guess,
@@ -59,6 +59,9 @@ async def on_message(message):
     global frozen
     if not message.author.bot and message.content.startswith(prefix):
         if not frozen or message.author.id == 137001076284063744:
+            if logging:
+                with open('ears_on_the_wall.log','a+') as f:
+                    f.write("{} - {} in {} - {}\n".format(time.time(), message.author.name, message.guild.name, message.content))
             await bot.process_commands(message)
         else:
             await message.channel.send("Bazbot is frozen and so will not respond to commands at this time.")
@@ -171,7 +174,13 @@ async def freeze(ctx):
     if frozen: return await ctx.send("Bazbot is now frozen!")
     return await ctx.send("Bazbot is no longer frozen!")
 
-
+@bot.command(brief="Toggles command logging")
+@commands.check(owner)
+async def logs(ctx):
+    global logging
+    logging = not logging
+    if logging: return await ctx.send("Bazbot is now logging commands!")
+    return await ctx.send("Bazbot is no longer logging!")
 
 async def reload_libs(ctx):
     excount = len(startup_extensions)
@@ -293,7 +302,6 @@ async def _exec(ctx,*,code : str):
 
 
 if __name__ == "__main__":
-
     bot.remove_command('help')
 
     for extension in startup_extensions:

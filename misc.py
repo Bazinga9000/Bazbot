@@ -1796,14 +1796,14 @@ class Misc(commands.Cog):
             #tool strike effect
             if random.random() < 0.75 and can_make_tools:
                 if "Instant" in negative_effect:
-                    hit_bonus = "{}{}".format(negative_effect, random_potency(positive_effect))
+                    hit_bonus = "{}{}".format(negative_effect, random_potency(negative_effect))
                 else:
                     hit_bonus = "{} of {}{}".format(random_time(), negative_effect, random_potency(negative_effect))
 
                 spmessage.append("Effect on Hit - {}".format(hit_bonus))
 
 
-            #full set bonus
+            add#full set bonus
             if random.random() < 0.25 and can_make_armor:
                 ni_positive = [i for i in positive_effects if "Instant" not in i]
                 ni_negative = [i for i in negative_effects if "Instant" not in i]
