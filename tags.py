@@ -324,6 +324,9 @@ class Tags(commands.Cog):
     async def tag(self,ctx, name : str):
         if ctx.author.bot: return
 
+        return await ctx.send("**b9!tag is now deprecated. You may still view old tags, but cannot run them. Back up the tags you care about, since this will be gone soon and I'm not telling you when.**")
+
+
         valid_tags = self.getservertags(ctx.guild.id)
         names = [t.name for t in valid_tags]
         try:
@@ -347,6 +350,8 @@ class Tags(commands.Cog):
     @commands.guild_only()
     @tag.command(brief="Create a tag!")
     async def create(self, ctx, name: str, *, text: str):
+
+        return await ctx.send("**b9!tag is now deprecated. You may still view old tags, but cannot create new ones. Back up the tags you care about, since this will be gone soon and I'm not telling you when.**")
 
         if name in self.banned_tags:
             await ctx.send("Uh oh! You friccin moron! That can't be a tag!")
@@ -402,6 +407,9 @@ class Tags(commands.Cog):
     @commands.guild_only()
     @tag.command(brief="Edit a tag you own!")
     async def edit(self, ctx, name : str, *, text : str):
+
+        return await ctx.send("**b9!tag is now deprecated. You may still view old tags, but cannot edit them. Back up the tags you care about, since this will be gone soon and I'm not telling you when.**")
+
 
         if name in self.banned_tags:
             await ctx.send("Uh oh! You friccin moron! That can't be a tag!")

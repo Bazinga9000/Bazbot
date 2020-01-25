@@ -141,6 +141,14 @@ class BadArgument(Exception):
     def __str__(self):
         return str(self.op)
 
+class ThreatOnMyLife(Exception):
+    def __init__(self,op,value):
+        self.op = op
+        self.value = value
+
+    def __str__(self):
+        return "Your attempt to invoke {} with `{}` as an argument has been detected as a potential threat on my life. Cease such action or be destroyed".format(self.op,self.value)
+
 class BadType(Exception):
     def __init__(self,op,value,type):
         self.op = op
@@ -358,6 +366,11 @@ class Stem(commands.Cog):
                 if token == "*":
                     a = stack.pop()
                     b = stack.pop()
+                    if a > 10**1000:
+                        raise ThreatOnMyLife("*",a)
+                    if b > 10**1000:
+                        raise ThreatOnMyLife("*",b)
+
                     stack.append(a * b)
 
                 if token == "%":
@@ -377,6 +390,21 @@ class Stem(commands.Cog):
                 if token in ["^","**"]:
                     a = stack.pop()
                     b = stack.pop()
+
+                    if isinstance(a,complex):
+                        if a.real > 10**100:
+                            raise ThreatOnMyLife(token,a)
+                    else:
+                        if a > 10**100:
+                            raise ThreatOnMyLife(token,a)
+
+                    if isinstance(b,complex):
+                        if b.real > 200:
+                            raise ThreatOnMyLife(token,b)
+                    else:
+                        if b > 200:
+                            raise ThreatOnMyLife(token,b)
+
                     try:
                         stack.append(math.pow(b,a))
                     except:
@@ -385,6 +413,21 @@ class Stem(commands.Cog):
                 if token in ["^-","**-"]:
                     a = stack.pop()
                     b = stack.pop()
+
+                    if isinstance(a,complex):
+                        if a.real < -10**100:
+                            raise ThreatOnMyLife(token.replace("-",""),-a)
+                    else:
+                        if a < -10**100:
+                            raise ThreatOnMyLife(token.replace("-",""),-a)
+
+                    if isinstance(b,complex):
+                        if b.real < -200:
+                            raise ThreatOnMyLife(token.replace("-",""),-b)
+                    else:
+                        if b < -200:
+                            raise ThreatOnMyLife(token.replace("-",""),-b)
+
                     stack.append(math.pow(b,-a))
 
                 if token == "sqrt":
@@ -462,6 +505,9 @@ class Stem(commands.Cog):
                     a = stack.pop()
 
                     self.ban("!",a,(complex))
+
+                    if a > 200:
+                        raise ThreatOnMyLife("!",a)
 
                     if isinstance(a,int):
                         stack.append(math.factorial(a))
@@ -821,8 +867,7 @@ class Stem(commands.Cog):
             rpn = self.infix_to_postfix(tokens)
         except MismatchedParenthesis:
             return await ctx.send("Uh oh! You friccin moron! You have mismatched parenthesis!")
-        except BadArgument as e:
-            return await ctx.send("Uh oh! You friccin moron! " + str(e) + " is an invalid operator!")
+
 
         #await ctx.send(" ".join([str(i) for i in rpn])) #PRINT RPN
 
@@ -830,7 +875,12 @@ class Stem(commands.Cog):
             loop = asyncio.get_event_loop()
             coroutine = loop.run_in_executor(None, self.parserpn, rpn)
             task = asyncio.wait_for(coroutine, 5)
-            answer = await task
+            try:
+                answer = await task
+            except BadArgument as e:
+                return await ctx.send("Uh oh! You friccin moron! " + str(e) + " is an invalid operator!")
+            except ThreatOnMyLife as e:
+                return await ctx.send(str(e))
 
             if len(answer) == 1:
                 await ctx.send(self.format_answer(answer.pop()))
