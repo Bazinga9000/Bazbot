@@ -25,7 +25,7 @@ class BadType(Exception):
         self.op = op
         self.value = value
         self.type = type
-        self.typemap = {int : "int", numpy.longdouble : "float", numpy.complex128 : "complex", complex : "complex",
+        self.typemap = {int : "int", numpy.float64 : "float", numpy.complex128 : "complex", complex : "complex",
                         tuple : "tuple"}
 
     def __str__(self):
@@ -49,14 +49,14 @@ def litparse(literal):
 
     try:
         float(literal) #throws exception if the value is actually a complex number
-        return numpy.fromstring(str(literal),dtype=numpy.longdouble,sep=" ")[0]  # float
+        return numpy.fromstring(str(literal),dtype=numpy.float64,sep=" ")[0]  # float
     except:
         pass
 
     try:
         #this is always a pure imaginary number, so i can resort to this hacky bullshit
-        if literal == "j": return numpy.complex256(0+1j)
-        return numpy.multiply(numpy.fromstring(str(literal),dtype=numpy.longdouble,sep=" ")[0],0+1j)  # complex
+        if literal == "j": return numpy.complex128(0+1j)
+        return numpy.multiply(numpy.fromstring(str(literal),dtype=numpy.float64,sep=" ")[0],0+1j)  # complex
     except:
         raise BadArgument(literal)
 
@@ -251,12 +251,12 @@ def to_rpn(expr):
 
 
 def limit(op,value,threshold,is_upper_bound):
-    comp = numpy.longdouble(value) if type(value) in [int,t_float] else numpy.abs(value) * numpy.sign(value.real)
+    comp = numpy.float64(value) if type(value) in [int,t_float] else numpy.abs(value) * numpy.sign(value.real)
 
     if is_upper_bound:
-        flag = comp > numpy.longdouble(threshold)
+        flag = comp > numpy.float64(threshold)
     else:
-        flag = comp < numpy.longdouble(threshold)
+        flag = comp < numpy.float64(threshold)
 
     if flag:
         raise ThreatOnMyLife(op,value)
@@ -271,8 +271,8 @@ def whitelist(op, value, typelist):
     if type(value) not in typelist:
         raise BadType(op,value,type(value))
 
-t_float = numpy.longdouble
-t_complex = numpy.complex256
+t_float = numpy.float64
+t_complex = numpy.complex128
 
 def sympyconvert(n):
     return litparse(str(n))
@@ -330,8 +330,8 @@ def parserpn(rpn):
                 #limit(token,b,10**100,True)
 
                 #integers get a promotion
-                if isinstance(a,int): a = numpy.longdouble(a)
-                if isinstance(b,int): b = numpy.longdouble(b)
+                if isinstance(a,int): a = numpy.float64(a)
+                if isinstance(b,int): b = numpy.float64(b)
 
                 try:
                     stack.append(numpy.power(b,a))
@@ -346,8 +346,8 @@ def parserpn(rpn):
                 #limit(token,b,10**100,True)
 
                 # integers get a promotion
-                if isinstance(a, int): a = numpy.longdouble(a)
-                if isinstance(b, int): b = numpy.longdouble(b)
+                if isinstance(a, int): a = numpy.float64(a)
+                if isinstance(b, int): b = numpy.float64(b)
 
                 stack.append(numpy.power(b,-a))
 
