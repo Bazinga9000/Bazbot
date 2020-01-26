@@ -392,17 +392,17 @@ class Stem(commands.Cog):
                     b = stack.pop()
 
                     if isinstance(a,complex):
-                        if a.real > 10**100:
+                        if a.real > 200:
                             raise ThreatOnMyLife(token,a)
                     else:
-                        if a > 10**100:
+                        if a > 200:
                             raise ThreatOnMyLife(token,a)
 
                     if isinstance(b,complex):
-                        if b.real > 200:
+                        if b.real > 10**100:
                             raise ThreatOnMyLife(token,b)
                     else:
-                        if b > 200:
+                        if b > 10**100:
                             raise ThreatOnMyLife(token,b)
 
                     try:
@@ -415,17 +415,17 @@ class Stem(commands.Cog):
                     b = stack.pop()
 
                     if isinstance(a,complex):
-                        if a.real < -10**100:
+                        if a.real < -200:
                             raise ThreatOnMyLife(token.replace("-",""),-a)
                     else:
-                        if a < -10**100:
+                        if a < -200:
                             raise ThreatOnMyLife(token.replace("-",""),-a)
 
                     if isinstance(b,complex):
-                        if b.real < -200:
+                        if b.real < -10**100:
                             raise ThreatOnMyLife(token.replace("-",""),-b)
                     else:
-                        if b < -200:
+                        if b < -10**100:
                             raise ThreatOnMyLife(token.replace("-",""),-b)
 
                     stack.append(math.pow(b,-a))
