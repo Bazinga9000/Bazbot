@@ -250,7 +250,7 @@ def script(text):
     return newtext
 
 def cthulu(len):
-    return "".join([chr(randint(33,126)) for i in range(int(len))])
+    return "".join([chr(randint(33,126)) for i in range(int(min(2001,len)))])
 
 
 
@@ -306,7 +306,7 @@ def unirandom():
 
 
 def unimash(length):
-    return "".join([chr(unirandom()) for i in range(int(length))])
+    return "".join([chr(unirandom()) for i in range(int(min(2001,length)))])
 
 def randspace(text):
     return "".join([i + (" " * randint(1,7)) for i in text])

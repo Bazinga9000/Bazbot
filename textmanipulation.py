@@ -83,7 +83,10 @@ class Text(commands.Cog):
 
     @commands.command(brief="Creates random text of a given length")
     async def cthulu(self, ctx, length : int):
-        await ctx.send(c.cthulu(length))
+        if length <= 2000:
+            await ctx.send(c.cthulu(length))
+        else:
+            await ctx.send("Uh oh! You friccin moron! That message is too long!")
 
     @commands.command(brief="Encrypts text using a Rotation Cipher")
     async def rot(self, ctx, shift : int, *, text : str):
@@ -103,7 +106,10 @@ class Text(commands.Cog):
 
     @commands.command(brief="Unicode keymashing")
     async def unimash(self, ctx, *, length : int):
-        await ctx.send(c.unimash(length))
+        if length <= 2000:
+            await ctx.send(c.unimash(length))
+        else:
+            await ctx.send("Uh oh! You friccin moron! That message is too long!")
 
     @commands.command(brief="Unicode keymashing")
     async def expand(self, ctx, times: int, *, text : str):
