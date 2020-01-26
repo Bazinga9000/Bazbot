@@ -54,10 +54,14 @@ async def on_ready():
     print(bcolors.OKBLUE + "Prefix: " + bot.command_prefix + bcolors.ENDC)
 
 
+banned_users = [
+    532757926272696321 #konvoj
+]
+
 @bot.event
 async def on_message(message):
     global frozen
-    if not message.author.bot and message.content.startswith(prefix):
+    if not message.author.bot and message.content.startswith(prefix) and message.author.id not in banned_users:
         if not frozen or message.author.id == 137001076284063744:
             if logging:
                 with open('ears_on_the_wall.log','a+') as f:
