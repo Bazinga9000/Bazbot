@@ -412,15 +412,18 @@ def parserpn(rpn):
 
             if token == "!":
                 a = stack.pop()
-
                 #limit("!",a,200,True)
-                stack.append(scipy.special.factorial(a))
+                stack.append(numpy.float64(scipy.special.factorial(a)))
 
             if token == "choose":
                 t = stack.pop()
 
-                a = t[0]
-                b = t[1]
+                try:
+                    a = t[0]
+                    b = t[1]
+                except:
+                    b = t
+                    a = stack.pop()
 
                 #limit("choose",a,200,True)
                 #limit("choose",b,200,True)
@@ -613,13 +616,6 @@ def parserpn(rpn):
 def format_answer(answer):
     if isinstance(answer,tuple): return str(tuple([format_answer(i) for i in answer])).replace("'","")
     if type(answer) in [list,numpy.array,numpy.ndarray]:
-        try:
-            if numpy.isinf(answer):
-                if answer > 0:return "∞"
-                return "-∞"
-        except:
-            pass
-
         if len(answer) == 1:
             return format_answer(answer[0])
         return "[" + " ".join([format_answer(i) for i in answer]).replace("'","") + "]"
@@ -633,10 +629,10 @@ def format_answer(answer):
             if answer > 0:return "∞"
             return "-∞"
 
-    if answer == int(answer):
+    if answer == int(answer) and answer < 10**20:
         return str(int(answer))
     else:
-        return str(answer)
+        return str(t_float(answer))
 
 
 

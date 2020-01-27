@@ -241,7 +241,6 @@ class Stem(commands.Cog):
             task = asyncio.wait_for(coroutine, 5)
             answer = await task
 
-
             if len(answer) == 1:
                 await ctx.send(rpn_math.format_answer(answer.pop()))
             elif len(answer) > 1:
