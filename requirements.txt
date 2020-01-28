@@ -13,4 +13,4 @@ hsluv==0.0.2
 numba==0.45.1
 pint==0.9
 regex==2019.08.19
-tensorflow==1.14.0
+tensorflow==1.15.2
