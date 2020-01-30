@@ -1436,7 +1436,7 @@ class Misc(commands.Cog):
         counts = [[0 for i in range(width)] for j in range(height)]
 
         for p in points:
-            counts[p[0]][p[1]] = -1
+            counts[p[0]][p[1]] = -9999999
             for n in neighbors(*p):
                 counts[n[0][0]][n[0][1]] += n[1]
 
@@ -1470,7 +1470,7 @@ class Misc(commands.Cog):
                 x = counts[i][j]
                 if x > 99:
                     return await ctx.send("Uh oh! You friccin moron! Your rule caused a square to detect more than 99 mines!")
-                if x == -1:
+                if x < 0:
                     string += "||<:bomb:671480425817833514>||"
                 elif (i,j) in visibles:
                     string += values[x]
