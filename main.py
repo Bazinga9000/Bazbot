@@ -192,6 +192,10 @@ async def reload_libs(ctx):
     for extension in startup_extensions:
         try:
             bot.unload_extension(extension)
+        except:
+            pass
+
+        try:
             bot.load_extension(extension)
             loaded += 1
         except Exception as e:

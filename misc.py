@@ -97,6 +97,17 @@ class Misc(commands.Cog):
             self.battle_individual_leaderboard_worst = {}
             self.battle_server_leaderboard_worst = {}
 
+        self.mines_rule_presets = {
+            "normal": "1", "knight": "/01", "no-up": "10111111", "no_vert": "1011", "no_horiz": "1110", "orth": "01",
+            "far-orth": "01/0010", "swath": "1/1", "doubled": "12", "taxicab": "12/0010", "horiz": "00001",
+            "pawn": "22200000/001000000000000", "2-squares": "/1", "shifted-orth": "00010100/000000101",
+            "queen": "12/10", "blind-down": "11110001", "precise": "12345678", "precise2": "12345678/9ABCDEFGHIJKLMNO",
+            "shifted-normal": "00010100/0000011111", "zebra": "//0100", "giraffe": "///00010100",
+            "antelope": "///010000", "gnu": "/01/001010", "bison": "//011011", "swath3": "1/1/1", "hill": "3/2/1",
+            "3-squares": "//1", "4-squares": "///1", "swath4": "1/1/1/1", "5-squares": "////1", "swath5": "1/1/1/1/1"
+
+        }
+
 
     def crop(self, im, new_width, new_height):
         width, height = im.size   # Get dimensions
@@ -1251,43 +1262,240 @@ class Misc(commands.Cog):
         await ctx.send("The time is " + dstring)
         #await ctx.send([clocktime,units.group(1,2),period,hours,minutes,seconds,totalseconds,onyanseconds])
 
-    @commands.command(brief="Create a minesweeper game in spoilers")
-    @commands.cooldown(1,30,type=commands.BucketType.user)
-    async def mines(self,ctx,height : int,width : int,mines : int):
+    def rule_to_ncf(self,rule):
+        rings = rule.split("/")
+        ring_size = lambda n: ((2*n)+1)**2 - ((2*n)-1)**2
+        neighbors = []
+
+        for n,ring in enumerate(rings):
+            if ring == "": continue
+
+            step = lambda: (position[0] + delta[0], position[1] + delta[1])
+            outside = lambda x: abs(x[0]) > n+1 or abs(x[1]) > n+1
+
+            value = lambda x: list("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ").index(x)
+
+            position = ((n+1),(n+1))
+            delta = (0,-1)
+            for i in range(ring_size(n+1)):
+                v = value(ring[i%len(ring)])
+                if v != 0:
+                    neighbors.append((position,v))
+                if outside(step()):
+                    delta = (delta[1], -delta[0])
+                position = step()
+
+        return neighbors
+
+
+
+
+
+
+    @commands.group("mines", brief="Create a minesweeper game in spoilers", invoke_without_command="true")
+    @commands.cooldown(1,10,type=commands.BucketType.user)
+    async def mines(self,ctx,height : int,width : int,mines : int, rule="normal", topology="square"):
         if mines > width*height:
             return await ctx.send("Uh oh! You friccin moron! That's too many mines!")
 
-        if width > 40 or height > 40:
+        if width > 80 or height > 30 or (width*height) > 400:
             return await ctx.send("Uh oh! You friccin moron! That's too big!")
 
+        if width < 0 or height < 0 or mines < 0:
+            return await ctx.send("Uh oh! You friccin moron! That's nonsensical!")
+
+        r = rule if rule not in self.mines_rule_presets else self.mines_rule_presets[rule]
+
+        if len(rule.split("/")) > 7:
+            return await ctx.send("Uh oh! You friccin moron! Rules can have no more than 7 rings!")
+
+        try:
+            neighbor_list = self.rule_to_ncf(r)
+        except:
+            return await ctx.send("Uh oh! You friccin moron! That's an invalid rule!")
+
+        aliases = {
+            "cylinder" : "cyl",
+            "projective" : "proj",
+        }
+
+        if topology in aliases: topology = aliases[topology]
+
+        valid_topologies = ["square","torus","cyl","mobius","klein","proj","brick"]
+
+        if topology not in valid_topologies:
+            return await ctx.send("Uh oh! That's not a valid topology! The valid geometries are `{}`".format(", ".join(valid_topologies)))
+
+        vertical_reflect = lambda x: set(((-i[0][0],i[0][1]),i[1]) for i in x)
+        horizontal_reflect = lambda x: set(((i[0][0],-i[0][1]),i[1]) for i in x)
+
+        if topology in ["mobius","klein","proj"] and set(neighbor_list) != vertical_reflect(neighbor_list):
+            return await ctx.send("Uh oh! You friccin moron! Your rule isn't compatible with `{}` topology, as it does not have vertical symmetry.".format(topology))
+
+        if topology == "proj" and set(neighbor_list) != horizontal_reflect(neighbor_list):
+            return await ctx.send("Uh oh! You friccin moron! Your rule isn't compatible with `{}` topology, as it does not have horizontal symmetry.".format(topology))
+
+
         points = [(i,j) for i in range(height) for j in range(width)]
+        #points.remove((0,0))
         random.shuffle(points)
-        points = points[:mines]
+        #points = [(0,0)] + points[:mines-1]
 
-        values = [":zero:",":one:",":two:",":three:",":four:",":five:",":six:",":seven:",":eight:"]
+        values = ['<:0_:671452548254793729>', '<:1_:671452547650945069>', '<:2_:671452547705208851>',
+                  '<:3_:671452547717791744>', '<:4_:671452547717922848>', '<:5_:671452547776643082>',
+                  '<:6_:671452547671916551>', '<:7_:671452547751477308>', '<:8_:671452547625517067>',
+                  '<:9_:671452547570991125>', '<:10:671452547659333648>', '<:11:671452547801677884>',
+                  '<:12:671452547461939211>', '<:13:671452547881631775>', '<:14:671452547965517827>',
+                  '<:15:671452547881500692>', '<:16:671452547885695048>', '<:17:671452547680043069>',
+                  '<:18:671452547596419083>', '<:19:671452547978100809>', '<:20:671452547935895602>',
+                  '<:21:671452548393336836>', '<:22:671452548150067232>', '<:23:671452548452057160>',
+                  '<:24:671452548602920971>', '<:25:671452552109359149>', '<:26:671452548615634946>',
+                  '<:27:671452548460314634>', '<:28:671452548611309630>', '<:29:671452548670029824>',
+                  '<:30:671452549282267143>', '<:31:671452548502388797>', '<:32:671452548657446953>',
+                  '<:33:671452548250468353>', '<:34:671452548632281093>', '<:35:671452548657446932>',
+                  '<:36:671452548250599445>', '<:37:671452548611178567>', '<:38:671452548439212073>',
+                  '<:39:671452548682612749>', '<:40:671452548409983000>', '<:41:671452548775018517>',
+                  '<:42:671452548854448178>', '<:43:671452548577624085>', '<:44:671452548816830468>',
+                  '<:45:671452548686938115>', '<:46:671452548624023573>', '<:47:671452548837933056>',
+                  '<:48:671452548946984980>', '<:49:671452548942659595>', '<:50:671452987293564939>',
+                  '<:51:671452987415068687>', '<:52:671452987381645363>', '<:53:671452987478114314>',
+                  '<:54:671452987461206049>', '<:55:671452986978861059>', '<:56:671452987628978176>',
+                  '<:57:671452987205353563>', '<:58:671452986991443979>', '<:59:671452987280850952>',
+                  '<:60:671452987213742081>', '<:61:671452987196964921>', '<:62:671452987196964870>',
+                  '<:63:671452986836385853>', '<:64:671452987188576261>', '<:65:671452987193032725>',
+                  '<:66:671452986849099803>', '<:67:671452987142438935>', '<:68:671452987146764325>',
+                  '<:69:671452987100758047>', '<:70:671452987197227024>', '<:71:671452987255947274>',
+                  '<:72:671452986735722537>', '<:73:671452986983186483>', '<:74:671452987205615644>',
+                  '<:75:671452987297759251>', '<:76:671452987205615654>', '<:77:671452987914453060>',
+                  '<:78:671452987188707368>', '<:79:671452987096563752>', '<:80:671452987180449847>',
+                  '<:81:671452987448754177>', '<:82:671452986861682774>', '<:83:671452986849099784>',
+                  '<:84:671452987243364373>', '<:85:671452986572275713>', '<:86:671452986740047898>',
+                  '<:87:671452987184381952>', '<:88:671452986836385825>', '<:89:671452987666726952>',
+                  '<:90:671452986307772476>', '<:91:671452986819608586>', '<:92:671452986660093958>',
+                  '<:93:671452986907820074>', '<:94:671452986844905519>', '<:95:671452986643447818>',
+                  '<:96:671452986433601537>', '<:97:671452986354172005>', '<:98:671452987100758036>',
+                  '<:99:671452986639253525>']
 
-        string = "Minesweeper: {}×{}, {}:bomb:\n".format(height,width,mines)
+        string = "Minesweeper: {}×{}, {} :bomb:, Rule `{}`, Topology `{}`\n".format(height,width,mines,rule, topology)
 
-        neighbors = lambda x, y: [(x-1,y-1),(x-1,y),(x-1,y+1),(x,y-1),(x,y+1),(x+1,y-1),(x+1,y),(x+1,y+1)]
+        def neighbors(r,c):
+            n = []
 
+            for p in neighbor_list:
+                nr = r + p[0][0]
+                nc = c + p[0][1]
+                if 0 <= nr < height and 0 <= nc < width:
+                    n.append([(nr,nc), p[1]])
+                elif topology == "torus":
+                    n.append([(nr % height, nc % width), p[1]])
+                elif topology == "cyl":
+                    if 0 <= nr < height:
+                        n.append([(nr, nc % width), p[1]])
+                elif topology == "mobius":
+                    if 0 <= nr < height:
+                        tr = nr if (nc // width) % 2 == 0 else height - 1 - (nr%height)
+                        tc = nc % width
+                        n.append([(tr,tc), p[1]])
+                elif topology == "klein":
+                    tr = nr if (nc // width) % 2 == 0 else height - 1 - (nr % height)
+                    tc = nc % width
+                    n.append([(tr, tc), p[1]])
+                elif topology == "proj":
+                    tr = nr if (nc // width) % 2 == 0 else height - 1 - (nr % height)
+                    tc = nc if (nr // height) % 2 == 0 else width - 1 - (nc % width)
+                    n.append([(tr, tc), p[1]])
+
+                elif topology == "brick":
+                    offset = (width//2) * (nr//height)
+                    n.append([(nr % height, (nc - offset)%width), p[1]])
+                #add shit for non-planar geomet here
+
+            return n
+
+        zeroes = []
+        '''
+        counts = []
         for i in range(height):
+            c = []
             for j in range(width):
                 if (i,j) in points:
-                    string += "||:bomb:||"
+                    c.append(-1)
                 else:
                     count = 0
                     n = neighbors(i,j)
+                    for p in n:
+                        if p[0] in points:
+                            count += p[1]
+                    if count > 99:
+                        return await ctx.send("Uh oh! You friccin moron! Your rule caused a square to detect more than 99 mines! Baz will eventually add a fallback for this, but not yet.")
 
-                    for p in points:
-                        if p in n:
-                            count += 1
+                    if count == 0:
+                        zeroes.append((i,j))
+                    c.append(count)
+            counts.append(c)
+        '''
+        counts = [[0 for i in range(width)] for j in range(height)]
 
-                    string += "||{}||".format(values[count])
+        for p in points:
+            counts[p[0]][p[1]] = -1
+            for n in neighbors(*p):
+                counts[n[0][0]][n[0][1]] += n[1]
+
+        for i in range(height):
+            for j in range(width):
+                if counts[i][j] == 0:
+                    zeroes.append((i,j))
+
+
+        visibles = []
+        try:
+            to_sample = [random.choice(zeroes)]
+        except:
+            to_sample = []
+
+
+        while len(to_sample) != 0:
+            s = to_sample.pop()
+            visibles.append(s)
+
+            for n in neighbors(s[0],s[1]):
+                if 0 <= n[0][0] < height and 0 <= n[0][1] < width:
+                    if counts[n[0][0]][n[0][1]] == 0:
+                        if n[0] not in visibles:
+                            to_sample.append(n[0])
+                    else:
+                        visibles.append(n[0])
+
+        for i in range(height):
+            for j in range(width):
+                x = counts[i][j]
+
+                if x > 99:
+                    return await ctx.send("Uh oh! You friccin moron! Your rule caused a square to detect more than 99 mines!")
+
+                if x == -1:
+                    string += "||<:bomb:671480425817833514>||"
+                elif (i,j) in visibles:
+                    string += values[x]
+                else:
+                    string += "||{}||".format(values[x])
             string += "\n"
 
+        msgs = string.split("\n")
+        message = ""
+        for m in msgs:
+            if len(message) + len(m) > 2000:
+                await ctx.send(message)
+                message = ""
 
-        await ctx.send(string)
+            message += m + "\n"
 
+        if message != "":
+            await ctx.send("​" + message)
+
+    @mines.command(brief="List all avaliable rule presets")
+    async def presets(self, ctx):
+        return await ctx.send("```\n" + ", ".join(self.mines_rule_presets.keys()) + "\n```")
 
     @commands.command(brief="Convert between multiples of the speed of light and warp factor.")
     async def warpspeed(self,ctx,unit : str,value : float):
