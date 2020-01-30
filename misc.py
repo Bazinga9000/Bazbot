@@ -1392,16 +1392,16 @@ class Misc(commands.Cog):
                         n.append([(nr, nc % width), p[1]])
                 elif topology == "mobius":
                     if 0 <= nr < height:
-                        tr = nr if (nc // width) % 2 == 0 else height - 1 - (nr%height)
+                        tr = nr%height if (nc // width) % 2 == 0 else height - 1 - (nr%height)
                         tc = nc % width
                         n.append([(tr,tc), p[1]])
                 elif topology == "klein":
-                    tr = nr if (nc // width) % 2 == 0 else height - 1 - (nr % height)
+                    tr = nr % height if (nc // width) % 2 == 0 else height - 1 - (nr % height)
                     tc = nc % width
                     n.append([(tr, tc), p[1]])
                 elif topology == "proj":
-                    tr = nr if (nc // width) % 2 == 0 else height - 1 - (nr % height)
-                    tc = nc if (nr // height) % 2 == 0 else width - 1 - (nc % width)
+                    tr = nr % height if (nc // width) % 2 == 0 else height - 1 - (nr % height)
+                    tc = nc % width if (nr // height) % 2 == 0 else width - 1 - (nc % width)
                     n.append([(tr, tc), p[1]])
 
                 elif topology == "brick":
