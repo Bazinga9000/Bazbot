@@ -1337,9 +1337,8 @@ class Misc(commands.Cog):
 
 
         points = [(i,j) for i in range(height) for j in range(width)]
-        #points.remove((0,0))
         random.shuffle(points)
-        #points = [(0,0)] + points[:mines-1]
+        points = points[:mines]
 
         values = ['<:0_:671452548254793729>', '<:1_:671452547650945069>', '<:2_:671452547705208851>',
                   '<:3_:671452547717791744>', '<:4_:671452547717922848>', '<:5_:671452547776643082>',
@@ -1469,10 +1468,8 @@ class Misc(commands.Cog):
         for i in range(height):
             for j in range(width):
                 x = counts[i][j]
-
                 if x > 99:
                     return await ctx.send("Uh oh! You friccin moron! Your rule caused a square to detect more than 99 mines!")
-
                 if x == -1:
                     string += "||<:bomb:671480425817833514>||"
                 elif (i,j) in visibles:
