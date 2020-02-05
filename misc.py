@@ -23,6 +23,7 @@ import regex
 import hsluv
 import inspect
 import os
+import collections
 
 warnings.simplefilter('error', Image.DecompressionBombWarning)
 
@@ -60,6 +61,8 @@ class Misc(commands.Cog):
         self.bot = bot
         self.ratel = lambda x: int(hashlib.sha256(x.lower().encode('utf-8')).hexdigest(),16) % 101
         self.ts = {}
+
+        ###givetake
         try:
             with open("givetake.pkl","rb") as f:
                 p = pickle.load(f)
@@ -71,6 +74,7 @@ class Misc(commands.Cog):
             self.givetakeleaderboard = {}
 
 
+        ###battle
         #top
         try:
             with open("battle.pkl","rb") as f:
@@ -97,6 +101,8 @@ class Misc(commands.Cog):
             self.battle_individual_leaderboard_worst = {}
             self.battle_server_leaderboard_worst = {}
 
+
+        #mines
         self.mines_rule_presets = {
             "normal": "1", "knight": "/01", "no-up": "10111111", "no_vert": "1011", "no_horiz": "1110", "orth": "01",
             "far-orth": "01/0010", "swath": "1/1", "doubled": "12", "taxicab": "12/0010", "horiz": "00001",
@@ -107,6 +113,10 @@ class Misc(commands.Cog):
             "3-squares": "//1", "4-squares": "///1", "swath4": "1/1/1/1", "5-squares": "////1", "swath5": "1/1/1/1/1"
 
         }
+
+
+        #mastermind
+        self.mm_games = {}
 
 
     def crop(self, im, new_width, new_height):
@@ -2063,6 +2073,70 @@ class Misc(commands.Cog):
             os.remove("output2.png")
         except FileNotFoundError:
             pass
+
+
+
+    @commands.group(aliases=['mm','mmind','masterm'],brief="Play a game of mastermind",invoke_without_command="true")
+    async def mastermind(self, ctx, guess):
+        if ctx.author.id not in self.mm_games:
+            return await ctx.send("Uh oh! You friccin moron! You aren't in a game!")
+
+        data = self.mm_games[ctx.author.id]
+        password = data[0]
+        moves = data[1]
+        moves += 1
+        guess = guess.upper()
+
+        if guess == password:
+            del self.mm_games[ctx.author.id]
+            return await ctx.send("You are correct, the password is `{}`! It took you `{}` guesses to find it!".format(password,moves))
+
+        correct_position = 0
+        for i in range(len(guess)):
+            if guess[i] == password[i]:
+                correct_position += 1
+
+        pw_multiset = collections.Counter(password)
+        guess_multiset = collections.Counter(guess)
+
+        correct_any = sum((pw_multiset & guess_multiset).values())
+
+        incorrect_position = correct_any - correct_position
+
+        await ctx.send("Guess #{} - {}\n"
+                       "Correct Number, Incorrect Position: {}\n"
+                       "Correct Number, Correct Position: {}\n".format(moves,guess,incorrect_position,correct_position))
+
+        self.mm_games[ctx.author.id] = [password,moves]
+
+    @mastermind.command(brief="create a game")
+    async def create(self, ctx, length : int, alphabet : int):
+        if ctx.author.id not in self.mm_games:
+            alpha = "1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+            if alphabet > len(alpha):
+                return await ctx.send("Uh oh! You friccin moron! That's too many characters in your alphabet!")
+            if alphabet < 2:
+                return await ctx.send("Uh oh! You friccin moron! That's nonsensical!")
+            if length > 100:
+                return await ctx.send("Uh oh! You friccin moron! That's too long of a code!")
+            string = "".join(random.choice(alpha[:alphabet]) for i in range(length))
+
+            self.mm_games[ctx.author.id] = [
+                string,
+                0
+            ]
+
+            return await ctx.send("Game created!")
+        else:
+            return await ctx.send("Uh oh! You friccin moron! You're already in a game!")
+
+    @mastermind.command(brief="leave your game")
+    async def leave(self, ctx):
+        if ctx.author.id in self.mm_games:
+            del self.mm_games[ctx.author.id]
+            return await ctx.send("You have left your game!")
+        else:
+            return await ctx.send("Uh oh! You friccin moron! You aren't in a game!")
 
 
     '''
