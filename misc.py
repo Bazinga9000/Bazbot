@@ -600,7 +600,10 @@ class Misc(commands.Cog):
 
 
         for h in ov:
-            if h[0] != self.bot.user: await ctx.channel.set_permissions(h[0],send_messages=False)
+            if isinstance(h,discord.Role):
+                await ctx.channel.set_permissions(h, send_messages=False)
+            else:
+                if h != self.bot.user: await ctx.channel.set_permissions(h,send_messages=False)
 
 
         await asyncio.sleep(5)
@@ -612,7 +615,7 @@ class Misc(commands.Cog):
             await ctx.channel.set_permissions(everyone, send_messages=True)
 
         for h in ov:
-            await ctx.channel.set_permissions(h[0],overwrite=h[1])
+            await ctx.channel.set_permissions(h,overwrite=ov[h])
 
 
         await ctx.send("*Time has resumed.*")
