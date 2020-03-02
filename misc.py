@@ -8,7 +8,7 @@ import dice
 import glob
 import asyncio
 import random
-from PIL import Image
+from PIL import Image, ImageDraw, ImageFont
 import aiohttp
 import warnings
 import itertools
@@ -2140,6 +2140,32 @@ class Misc(commands.Cog):
             return await ctx.send("You have left your game!")
         else:
             return await ctx.send("Uh oh! You friccin moron! You aren't in a game!")
+
+    def draw_compass_text(self, draw, text, coords, font, fill):
+        wfont, hfont = draw.textsize(text, font=font)
+        c = (coords[0] - wfont // 2, coords[1] - hfont // 2)
+        draw.text(c, text, fill=fill, font=font)
+
+    @commands.command(brief="Generate a compass on which people can be placed")
+    async def compass(self, ctx, top, bottom, left, right):
+        cimg = Image.open("cmdimages/compass.png")
+        draw = ImageDraw.Draw(cimg)
+
+        font = ImageFont.truetype("cmdimages/anguleux.ttf",70)
+
+        self.draw_compass_text(draw,top,(540,40),font,(0,0,0))
+        self.draw_compass_text(draw,bottom,(540,1020),font,(0,0,0))
+        cimg = cimg.rotate(-90)
+        draw = ImageDraw.Draw(cimg)
+        self.draw_compass_text(draw, left, (540, 40), font, (0, 0, 0))
+        cimg = cimg.rotate(180)
+        draw = ImageDraw.Draw(cimg)
+        self.draw_compass_text(draw, right, (540, 40), font, (0, 0, 0))
+
+        cimg = cimg.rotate(-90)
+        cimg.save("output.png")
+        await ctx.send(file=discord.File(open("output.png", mode="rb")))
+
 
 
     '''
