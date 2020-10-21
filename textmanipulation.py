@@ -81,7 +81,7 @@ class Text(commands.Cog):
     async def script(self, ctx, *, text : str):
         await ctx.send(c.script(text))
 
-    @commands.command(brief="Creates random text of a given length")
+    @commands.command(aliases=["cthulhu"],brief="Creates random text of a given length")
     async def cthulu(self, ctx, length : int):
         if length <= 2000:
             await ctx.send(c.cthulu(length))
