@@ -1612,7 +1612,7 @@ class Misc(commands.Cog):
             try:
                 return self.bot.get_guild(id).name
             except:
-                return "unknown"
+                return str(id)
 
     @commands.guild_only()
     @commands.command(brief="Battle it out over the outcome of a pareto distribution.")
