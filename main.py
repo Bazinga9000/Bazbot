@@ -8,6 +8,9 @@ import asyncio
 import concurrent
 import time
 
+# You found the 4th Bazgonball!
+# https://cdn.discordapp.com/attachments/208400802404892672/813170494412685372/4_bazgonball.png
+
 owner = lambda ctx: ctx.author.id == 137001076284063744
 tracebackt = True
 frozen = False
@@ -311,7 +314,6 @@ async def _exec(ctx,*,code : str):
 
 if __name__ == "__main__":
     bot.remove_command('help')
-
     for extension in startup_extensions:
         try:
             bot.load_extension(extension)
