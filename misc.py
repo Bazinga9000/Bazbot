@@ -2021,7 +2021,7 @@ class Misc(commands.Cog):
                 spmessage.append("Effect on Hit - {}".format(hit_bonus))
 
 
-            add#full set bonus
+            #full set bonus
             if random.random() < 0.25 and can_make_armor:
                 ni_positive = [i for i in positive_effects if "Instant" not in i]
                 ni_negative = [i for i in negative_effects if "Instant" not in i]

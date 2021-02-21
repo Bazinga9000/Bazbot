@@ -8,8 +8,6 @@ import asyncio
 import concurrent
 import time
 
-# You found the 4th Bazgonball!
-# https://cdn.discordapp.com/attachments/208400802404892672/813170494412685372/4_bazgonball.png
 
 owner = lambda ctx: ctx.author.id == 137001076284063744
 tracebackt = True
