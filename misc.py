@@ -13,11 +13,9 @@ import aiohttp
 import warnings
 import itertools
 import time
-import datetime
 import io
-from io import TextIOWrapper, BytesIO
+from io import BytesIO
 import pickle
-import re
 import ipa_to_onyanthu as onyan
 import regex
 import hsluv
@@ -129,17 +127,13 @@ class Misc(commands.Cog):
 
         return im.crop((left, top, right, bottom))
 
-
-    @commands.command(brief="Coolguy-ify an image")
-    @commands.cooldown(1,10,type=commands.BucketType.user)
-    async def coolguy(self, ctx, *id):
+    async def download_image(self, ctx, id):
         if len(id) == 0:
             try:
                 url = ctx.message.attachments[0].url
             except:
                 return await ctx.send("Uh oh! You friccin moron! You need either an image or a url!")
         else:
-            url = id[0]
             try:
                 url = ctx.message.mentions[0].avatar_url
                 if url == "": url = ctx.messages.mentions[0].default_avatar_url
@@ -154,7 +148,7 @@ class Misc(commands.Cog):
         url = url.replace(".webp",".png").replace(".webm",".png")
 
         urll = url.lower()
-        if ".png" not in urll and ".jpg" not in urll and ".gif" not in urll:
+        if not any((e in urll for e in ('.png', '.jpg', '.gif'))):
             return await ctx.send("Uh oh! You friccin moron! That's not an image!")
 
         async with aiohttp.ClientSession() as session:
@@ -162,11 +156,17 @@ class Misc(commands.Cog):
                 response = await resp.read()
 
         try:
-            image = Image.open(BytesIO(response))
+            return Image.open(BytesIO(response))
         except Image.DecompressionBombWarning:
             return await ctx.send("Uh oh! You friccin moron! That image is too big! Try a smaller one.")
         except:
             return await ctx.send("Uh oh! You friccin moron! That's not an image!")
+
+
+    @commands.command(brief="Coolguy-ify an image")
+    @commands.cooldown(1,10,type=commands.BucketType.user)
+    async def coolguy(self, ctx, *id):
+        image = await self.download_image(ctx, id)
 
         s = image.size
 
@@ -197,37 +197,7 @@ class Misc(commands.Cog):
     @commands.command(brief="*ゴゴゴゴゴゴゴ*")
     @commands.cooldown(1, 10, type=commands.BucketType.user)
     async def menacing(self, ctx, *id):
-        if len(id) == 0:
-            url = ctx.message.attachments[0].url
-        else:
-            url = id[0]
-            try:
-                url = ctx.message.mentions[0].avatar_url
-                if url == "": url = ctx.messages.mentions[0].default_avatar_url
-            except:
-                try:
-                    user = self.bot.get_user(int(id[0]))
-                    url = user.avatar_url
-                    if url == "": url = user.default_avatar_url
-                except:
-                    url = id[0]
-
-        url = url.replace(".webp", ".png").replace(".webm", ".png")
-        urll = url.lower()
-
-        if ".png" not in urll and ".jpg" not in urll and ".gif" not in urll:
-            return await ctx.send("Uh oh! You friccin moron! That's not an image!")
-
-        async with aiohttp.ClientSession() as session:
-            async with session.get(url) as resp:
-                response = await resp.read()
-
-        try:
-            image = Image.open(BytesIO(response))
-        except Image.DecompressionBombWarning:
-            return await ctx.send("Uh oh! You friccin moron! That image is too big! Try a smaller one.")
-        except:
-            return await ctx.send("Uh oh! You friccin moron! That's not an image!")
+        image = await self.download_image(ctx, id)
 
         s = image.size
 
@@ -1156,10 +1126,7 @@ class Misc(commands.Cog):
 
     @commands.command(brief="View the givetake stats")
     async def gtstats(self, ctx, page=1):
-        try:
-            self.givetakeleaderboard[ctx.author.id]
-        except:
-            self.givetakeleaderboard[ctx.author.id] = 0
+        self.givetakeleaderboard.setdefault(ctx.author.id, 0)
 
         leaderboard = self.givetakeleaderboard.items()
 
@@ -1188,10 +1155,7 @@ class Misc(commands.Cog):
     @commands.cooldown(1,300,type=commands.BucketType.user)
     @commands.command(brief="A game of give and take",aliases=["gt"])
     async def givetake(self, ctx, option):
-        try:
-            self.givetakeleaderboard[ctx.author.id]
-        except:
-            self.givetakeleaderboard[ctx.author.id] = 0
+        self.givetakeleaderboard.setdefault(ctx.author.id, 0)
 
         if option.lower() not in ["give","take"]:
             emsg = '''Uh oh! You friccin moron! The only valid options are `give` and `take`!
@@ -2072,11 +2036,9 @@ class Misc(commands.Cog):
 
             await ctx.send(embed=embed,files=[item_file, ore_file])
 
-        try:
-            os.remove("output2.png")
-        except FileNotFoundError:
-            pass
-
+        output_path = "output2.png"
+        if os.path.exists(output_path):
+            os.remove(output_path)
 
 
     @commands.group(aliases=['mm','mmind','masterm'],brief="Play a game of mastermind",invoke_without_command="true")

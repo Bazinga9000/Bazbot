@@ -1,13 +1,10 @@
-import discord
 from discord.ext import commands
-import json
 import shlex
 import random
 import pickle
 import numpy
 import math
 import asyncio
-import sys, traceback
 
 class Tag:
     def __init__(self,name,command,authorname,authorid,guildid,var={},ucount=0):

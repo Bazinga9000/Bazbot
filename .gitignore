@@ -11,3 +11,4 @@ cc.py
 ccimages/*
 db/*
 *.log
+venv/

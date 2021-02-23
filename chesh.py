@@ -1,5 +1,3 @@
-import itertools
-import random
 import importlib
 import discord
 from discord.ext import commands

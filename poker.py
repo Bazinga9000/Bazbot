@@ -1,8 +1,6 @@
 import pokerhe as p
 import money as m
-import discord
 import random
-import pickle
 
 from discord.ext import commands
 

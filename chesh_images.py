@@ -3,8 +3,6 @@ import hsluv
 import io
 import requests
 from io import BytesIO
-import math
-import random
 
 def converthsv(hsv):
     t = hsluv.hsluv_to_rgb(hsv)
