@@ -1164,16 +1164,19 @@ class Misc(commands.Cog):
             return await ctx.send(emsg)
 
         if option.lower() == "give":
-            potdelta = 1 + numpy.random.binomial(self.givetakescore, 0.1)
+            try:
+                potdelta = 1 + numpy.random.binomial(self.givetakescore, 0.1)
+            except OverflowError:
+                await ctx.send("The pot is filled to the brim! It currently stands at {0:,}".format(self.givetakescore))
             self.givetakescore += potdelta
             if potdelta == 1:
-                await ctx.send("You have given the pot a point! It currently stands at {}!".format(self.givetakescore))
+                await ctx.send("You have given the pot a point! It currently stands at {0:,}!".format(self.givetakescore))
             else:
-                await ctx.send("You have given the pot {} points! It currently stands at {}!".format(potdelta,self.givetakescore))
+                await ctx.send("You have given the pot {0:,} points! It currently stands at {1:,}!".format(potdelta,self.givetakescore))
 
         elif option.lower() == "take":
             self.givetakeleaderboard[ctx.author.id] += self.givetakescore
-            await ctx.send("You have taken the Pot for yourself! {} Points have been added to your score, which is now {}".format(self.givetakescore,self.givetakeleaderboard[ctx.author.id]))
+            await ctx.send("You have taken the Pot for yourself! {0:,} Points have been added to your score, which is now {1:,}".format(self.givetakescore,self.givetakeleaderboard[ctx.author.id]))
             self.givetakescore = 0
 
 
@@ -1727,7 +1730,7 @@ class Misc(commands.Cog):
                                                    'th', 'tj','tr', 'tw', '']
 
         finals = list('bcdfgklmnprstvxz') + ['ch', 'ck', 'ct', 'ft', 'ld', 'lg', 'lk', 'lt', 'mp', 'nd', 'ng', 'nk', 'nt', 'ph', 'pt',
-                                                 'rk', 'rt', 'sh', 'sk', 'sp', 'ss', 'st', 'th', '']
+                                             'rk', 'rt', 'sh', 'sk', 'sp', 'ss', 'st', 'th', '']
 
         vowels = ['a','e','i','o','u','ai','ay','ee', 'ea', 'y', 'ie', 'oa', 'ew']
 
@@ -1858,7 +1861,7 @@ class Misc(commands.Cog):
             }
             closest_speed = self.ratiocompare(tool_speed,speed_comp)
             tmessage += "\nMining Speed Multiplier - {}× ({}× {})".format(tool_speed,round(closest_speed[1],2),
-                                                                                                                closest_speed[0])
+                                                                          closest_speed[0])
             ptypes = ["Stone","Iron","Diamond"]
             tmessage += "\nMining Level - {}".format(random.choice(ptypes))
 
@@ -1872,7 +1875,7 @@ class Misc(commands.Cog):
 
             closest_tool_enchantability = self.ratiocompare(tool_enchantability, tool_ench_comp)
             tmessage += "\nEnchantability - {} ({}× {})".format(tool_enchantability, round(closest_tool_enchantability[1], 2),
-                                                                                          closest_tool_enchantability[0])
+                                                                closest_tool_enchantability[0])
         embed.add_field(name="Tool Information", value=tmessage, inline=False)
 
         #armor
@@ -1937,8 +1940,8 @@ class Misc(commands.Cog):
 
             closest_armor_enchantability = self.ratiocompare(armor_enchantability, armor_ench_comp)
             amessage += "\nEnchantability - {} ({}× {})".format(armor_enchantability,
-                                                                                          round(closest_armor_enchantability[1], 2),
-                                                                                          closest_armor_enchantability[0])
+                                                                round(closest_armor_enchantability[1], 2),
+                                                                closest_armor_enchantability[0])
 
         embed.add_field(name="Armor Information", value=amessage, inline=False)
 
