@@ -1,16 +1,8 @@
-import discord
 from discord.ext import commands
-from random import *
 from sympy import *
-from sympy import core
-import cmath
-import colorsys
-import matplotlib.pyplot as plt
-from mpmath import cplot
 import re
 import pint
 import math
-import numpy
 import scipy
 from scipy import special
 from scipy import misc

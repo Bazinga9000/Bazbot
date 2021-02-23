@@ -1,5 +1,4 @@
 import numpy, scipy, sympy
-import math
 
 numpy.seterr(over="raise",under="raise")
 

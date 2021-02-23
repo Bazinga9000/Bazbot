@@ -1,11 +1,5 @@
-import discord
 from discord.ext import commands
-import json
-import shlex
-import random
 import pickle
-import numpy
-import sys, traceback
 
 
 def get_money():

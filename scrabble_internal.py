@@ -1,10 +1,7 @@
 import random
-import chesh_images as img
-import math
-import itertools
-from copy import deepcopy
-import numpy
-import scipy.stats
+from PIL import Image, ImageDraw, ImageFont
+import hsluv
+import io
 
 
 '''
@@ -337,13 +334,6 @@ class Scrabble:
 
 
 #DRAW CODE BELOW THIS LINE
-
-
-from PIL import Image, ImageDraw, ImageChops, ImageFont
-import hsluv
-import io
-import math
-import random
 
 
 def converthsv(hsv):

@@ -2,10 +2,9 @@ from discord.ext import commands
 import re as rgx
 import discord
 from io import TextIOWrapper, BytesIO
-import sys,traceback
+import traceback
 import subprocess
 import asyncio
-import concurrent
 import time
 
 

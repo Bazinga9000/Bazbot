@@ -1,5 +1,5 @@
 import regex
-from PIL import Image, ImageChops
+from PIL import Image
 consonants = "mnŋɲptkbdgfvθðl"
 vowels = "aeiouɪʊʌæəʔ"
 #dear linguists, i know the glottal stop isn't a vowel, but in order for the program to parse it like one

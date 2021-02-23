@@ -1,5 +1,4 @@
 from random import *
-from itertools import cycle
 from inspect import signature
 import string
 import shlex
